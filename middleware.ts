@@ -25,40 +25,34 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Obtiene la sesión actual
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { pathname } = request.nextUrl
+  const { pathname, searchParams } = request.nextUrl
 
-  // Rutas públicas que no requieren autenticación
   const publicRoutes = [
     '/login',
     '/registro',
     '/recuperar',
     '/terminos',
     '/privacidad',
+    '/auth',
   ]
 
   const isPublicRoute = publicRoutes.some(
     route => pathname.startsWith(route)
   )
 
-  // Si no está autenticado e intenta acceder a ruta privada → login
   if (!user && !isPublicRoute && pathname !== '/') {
     const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set(
-      'error',
-      'Debes iniciar sesión para acceder'
-    )
+    loginUrl.searchParams.set('error', 'Debes iniciar sesión para acceder')
     return NextResponse.redirect(loginUrl)
   }
 
-  // Si está autenticado e intenta ir al login/registro → dashboard
-  if (user && (pathname === '/login' || pathname === '/registro')) {
+  // Solo redirige al dashboard si NO hay parámetro "mensaje"
+  if (user && (pathname === '/login' || pathname === '/registro') && !searchParams.get('mensaje')) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  // Si está autenticado y va a la raíz → dashboard
   if (user && pathname === '/') {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }

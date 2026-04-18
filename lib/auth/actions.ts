@@ -61,7 +61,6 @@ export async function signUp(formData: FormData) {
     redirect('/registro?error=Error al crear la cuenta. Intenta de nuevo')
   }
 
-  // Actualiza el perfil con los datos adicionales
   if (data.user) {
     await supabase.from('profiles').upsert({
       id:               data.user.id,
@@ -74,7 +73,7 @@ export async function signUp(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/onboarding')
+  redirect(`/registro?mensaje=${encodeURIComponent('¡Registro exitoso! Revisa tu bandeja de entrada y confirma tu cuenta.')}`)
 }
 
 // ── SIGN OUT ───────────────────────────────────────────────
@@ -83,4 +82,25 @@ export async function signOut() {
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
   redirect('/login')
+}
+
+// ── RECUPERAR PASSWORD ─────────────────────────────────────
+export async function recuperarPassword(formData: FormData) {
+  const supabase = await createClient()
+
+  const email = formData.get('email') as string
+
+  if (!email) {
+    redirect(`/recuperar?error=${encodeURIComponent('Ingresa tu correo electrónico')}`)
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/actualizar`,
+  })
+
+  if (error) {
+    redirect(`/recuperar?error=${encodeURIComponent(error.message)}`)
+  }
+
+  redirect(`/recuperar?mensaje=${encodeURIComponent('Te enviamos un enlace a ' + email + '. Revisa tu bandeja de entrada.')}`)
 }
