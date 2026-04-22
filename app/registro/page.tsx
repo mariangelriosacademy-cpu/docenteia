@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { signUp } from '@/lib/auth/actions'
 
 const PAISES = [
@@ -27,190 +28,207 @@ export default async function RegistroPage({ searchParams }: RegistroPageProps) 
   const mensaje = params.mensaje
 
   return (
-    <div className="min-h-screen flex items-center justify-center
-                    bg-gradient-to-br from-[#1A1A5E] to-[#3D3B8E]
-                    px-4 py-10">
+    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        .reg-left {
+          flex: 1;
+          background: #191e2e;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          padding: 48px;
+          position: relative;
+          overflow: hidden;
+        }
+        .reg-left::before {
+          content: '';
+          position: absolute;
+          width: 600px; height: 600px;
+          background: radial-gradient(circle, rgba(0,163,255,0.10) 0%, transparent 70%);
+          top: 50%; left: 50%;
+          transform: translate(-50%,-50%);
+        }
+        .reg-left::after {
+          content: '';
+          position: absolute;
+          width: 300px; height: 300px;
+          background: radial-gradient(circle, rgba(142,45,226,0.12) 0%, transparent 70%);
+          bottom: 10%; right: 10%;
+        }
+        .reg-right {
+          width: 520px;
+          background: #f8f9fa;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 48px;
+          overflow-y: auto;
+        }
+        .input-field {
+          width: 100%;
+          padding: 11px 14px;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 8px;
+          font-size: 0.9rem;
+          font-family: inherit;
+          color: #1e293b;
+          background: white;
+          outline: none;
+          transition: all 0.2s;
+        }
+        .input-field:focus { border-color: #00A3FF; box-shadow: 0 0 0 3px rgba(0,163,255,0.12); }
+        .btn-primary {
+          width: 100%;
+          padding: 13px;
+          background: linear-gradient(135deg, #00A3FF 0%, #8E2DE2 100%);
+          color: white;
+          font-weight: 700;
+          font-size: 0.95rem;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-family: inherit;
+          transition: all 0.2s;
+          box-shadow: 0 4px 20px rgba(0,163,255,0.35);
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 32px rgba(0,163,255,0.45); }
+        .btn-secondary {
+          width: 100%;
+          padding: 12px;
+          background: transparent;
+          color: #191e2e;
+          font-weight: 600;
+          font-size: 0.9rem;
+          border: 1.5px solid #d1d5db;
+          border-radius: 8px;
+          cursor: pointer;
+          font-family: inherit;
+          transition: all 0.2s;
+          text-decoration: none;
+          display: block;
+          text-align: center;
+        }
+        .btn-secondary:hover { background: #191e2e; color: white; border-color: #191e2e; }
+        .feature-item { display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.65); font-size: 0.88rem; padding: 7px 0; }
+        .feature-dot { width: 7px; height: 7px; background: linear-gradient(135deg,#00A3FF,#8E2DE2); border-radius: 50%; flex-shrink: 0; }
+        @media (max-width: 768px) { .reg-left { display: none; } .reg-right { width: 100%; } }
+      `}</style>
 
-      <div className="w-full max-w-md bg-white rounded-2xl
-                      shadow-2xl overflow-hidden">
-
-        {/* Header */}
-        <div className="bg-[#3D3B8E] px-8 py-7 text-center">
-          <h1 className="text-3xl font-bold text-white tracking-tight">
-            Docente<span className="text-[#0D9488]">IA</span>
-          </h1>
-          <p className="text-indigo-200 text-sm mt-1">
-            Crea tu cuenta gratis — 14 días Pro incluidos
+      {/* Lado izquierdo */}
+      <div className="reg-left">
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 420 }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: 36 }}>
+            <Image
+              src="/logo.png"
+              alt="Docenly"
+              width={160}
+              height={48}
+              style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+              priority
+            />
+          </Link>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'white', lineHeight: 1.3, marginBottom: 12, letterSpacing: '-0.02em' }}>
+            Únete a miles de docentes que ya usan{' '}
+            <span style={{ background: 'linear-gradient(135deg,#00A3FF,#8E2DE2)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Docenly
+            </span>
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.88rem', lineHeight: 1.75, marginBottom: 40 }}>
+            Crea evaluaciones, proyectos y contenido pedagógico adaptado al currículo de tu país en segundos.
           </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {['14 días Pro gratis incluidos', '+2.000 docentes activos', 'Evaluaciones con IA en segundos', 'Proyectos curriculares por país'].map(f => (
+              <div key={f} className="feature-item"><div className="feature-dot" />{f}</div>
+            ))}
+          </div>
         </div>
+      </div>
 
-        <div className="px-8 py-8">
+      {/* Lado derecho */}
+      <div className="reg-right">
 
-          {/* Estado: registro exitoso */}
-          {mensaje ? (
-            <div className="text-center py-4">
-              <div className="text-6xl mb-4">📬</div>
-              <h2 className="text-xl font-bold text-gray-800 mb-2">
-                ¡Revisa tu correo!
-              </h2>
-              <p className="text-gray-500 text-sm mb-6">{mensaje}</p>
-              <p className="text-gray-400 text-xs mb-6">
-                Revisa también tu carpeta de spam si no lo encuentras.
+        {mensaje ? (
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: 16 }}>📬</div>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#111827', marginBottom: 8 }}>¡Revisa tu correo!</h2>
+            <p style={{ color: '#6B7280', fontSize: '0.88rem', marginBottom: 8 }}>{mensaje}</p>
+            <p style={{ color: '#9CA3AF', fontSize: '0.78rem', marginBottom: 24 }}>Revisa también tu carpeta de spam si no lo encuentras.</p>
+            <Link href="/login" className="btn-primary" style={{ display: 'block', textDecoration: 'none', textAlign: 'center' }}>
+              Ir al inicio de sesión
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div style={{ marginBottom: 28 }}>
+              <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#111827', marginBottom: 6, letterSpacing: '-0.025em' }}>
+                Crear cuenta
+              </h1>
+              <p style={{ color: '#6B7280', fontSize: '0.88rem' }}>
+                Gratis — <span style={{ fontWeight: 600, color: '#00A3FF' }}>14 días Pro incluidos</span>
               </p>
-              <Link
-                href="/login"
-                className="block w-full py-3 bg-[#3D3B8E] text-white
-                           font-semibold rounded-lg hover:bg-[#2D2B7E]
-                           transition-all text-sm text-center"
-              >
-                Ir al inicio de sesión
-              </Link>
             </div>
 
-          ) : (
-            <>
-              <h2 className="text-xl font-bold text-gray-800 mb-6">
-                Crear cuenta
-              </h2>
+            {error && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                ⚠️ {error}
+              </div>
+            )}
 
-              {/* Error */}
-              {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200
-                                rounded-lg flex items-center gap-2">
-                  <span className="text-red-500 text-lg">⚠️</span>
-                  <p className="text-red-600 text-sm">{error}</p>
-                </div>
-              )}
+            <form action={signUp} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-              <form action={signUp} className="space-y-4">
-
-                {/* Nombre */}
-                <div>
-                  <label htmlFor="nombre"
-                    className="block text-sm font-medium text-gray-700 mb-1">
-                    Nombre completo
-                  </label>
-                  <input
-                    id="nombre" name="nombre" type="text" required
-                    placeholder="María González"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg
-                               text-sm focus:outline-none focus:ring-2
-                               focus:ring-[#3D3B8E] focus:border-transparent
-                               transition-all placeholder:text-gray-400"
-                  />
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-1">
-                    Correo electrónico
-                  </label>
-                  <input
-                    id="email" name="email" type="email" required
-                    placeholder="tu@correo.com"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg
-                               text-sm focus:outline-none focus:ring-2
-                               focus:ring-[#3D3B8E] focus:border-transparent
-                               transition-all placeholder:text-gray-400"
-                  />
-                </div>
-
-                {/* Contraseña */}
-                <div>
-                  <label htmlFor="password"
-                    className="block text-sm font-medium text-gray-700 mb-1">
-                    Contraseña
-                  </label>
-                  <input
-                    id="password" name="password" type="password"
-                    required minLength={8}
-                    placeholder="Mínimo 8 caracteres"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg
-                               text-sm focus:outline-none focus:ring-2
-                               focus:ring-[#3D3B8E] focus:border-transparent
-                               transition-all placeholder:text-gray-400"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">Mínimo 8 caracteres</p>
-                </div>
-
-                {/* País */}
-                <div>
-                  <label htmlFor="pais"
-                    className="block text-sm font-medium text-gray-700 mb-1">
-                    País
-                  </label>
-                  <select
-                    id="pais" name="pais" required defaultValue=""
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg
-                               text-sm focus:outline-none focus:ring-2
-                               focus:ring-[#3D3B8E] focus:border-transparent
-                               transition-all bg-white text-gray-700"
-                  >
-                    <option value="" disabled>Selecciona tu país</option>
-                    {PAISES.map((p) => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Nivel educativo */}
-                <div>
-                  <label htmlFor="nivel_educativo"
-                    className="block text-sm font-medium text-gray-700 mb-1">
-                    Nivel educativo que impartes
-                  </label>
-                  <select
-                    id="nivel_educativo" name="nivel_educativo"
-                    required defaultValue=""
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg
-                               text-sm focus:outline-none focus:ring-2
-                               focus:ring-[#3D3B8E] focus:border-transparent
-                               transition-all bg-white text-gray-700"
-                  >
-                    <option value="" disabled>Selecciona el nivel</option>
-                    {NIVELES.map((n) => (
-                      <option key={n.value} value={n.value}>{n.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Botón */}
-                <button
-                  type="submit"
-                  className="w-full py-3 bg-[#0D9488] text-white font-semibold
-                             rounded-lg hover:bg-[#0B7A70] active:scale-95
-                             transition-all text-sm shadow-md mt-2
-                             focus:outline-none focus:ring-2
-                             focus:ring-[#0D9488] focus:ring-offset-2"
-                >
-                  Crear cuenta gratis →
-                </button>
-
-                <p className="text-center text-xs text-gray-500">
-                  🎁 Incluye <strong>14 días gratis</strong> del plan Pro
-                </p>
-
-              </form>
-
-              <div className="flex items-center gap-3 my-5">
-                <div className="flex-1 h-px bg-gray-200" />
-                <span className="text-gray-400 text-xs">¿Ya tienes cuenta?</span>
-                <div className="flex-1 h-px bg-gray-200" />
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: 5 }}>Nombre completo</label>
+                <input className="input-field" id="nombre" name="nombre" type="text" required placeholder="María González" />
               </div>
 
-              <Link
-                href="/login"
-                className="block w-full py-3 border-2 border-[#3D3B8E]
-                           text-[#3D3B8E] font-semibold rounded-lg
-                           hover:bg-[#3D3B8E] hover:text-white
-                           transition-all text-sm text-center"
-              >
-                Iniciar sesión
-              </Link>
-            </>
-          )}
-        </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: 5 }}>Correo electrónico</label>
+                <input className="input-field" id="email" name="email" type="email" required placeholder="tu@correo.com" />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: 5 }}>Contraseña</label>
+                <input className="input-field" id="password" name="password" type="password" required minLength={8} placeholder="Mínimo 8 caracteres" />
+                <p style={{ fontSize: '0.72rem', color: '#9CA3AF', marginTop: 4 }}>Mínimo 8 caracteres</p>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: 5 }}>País</label>
+                <select className="input-field" id="pais" name="pais" required defaultValue="">
+                  <option value="" disabled>Selecciona tu país</option>
+                  {PAISES.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: 5 }}>Nivel educativo que impartes</label>
+                <select className="input-field" id="nivel_educativo" name="nivel_educativo" required defaultValue="">
+                  <option value="" disabled>Selecciona el nivel</option>
+                  {NIVELES.map((n) => <option key={n.value} value={n.value}>{n.label}</option>)}
+                </select>
+              </div>
+
+              <button type="submit" className="btn-primary" style={{ marginTop: 4 }}>
+                Crear cuenta gratis →
+              </button>
+
+              <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#9CA3AF' }}>
+                🎁 Incluye <strong style={{ color: '#111827' }}>14 días gratis</strong> del plan Pro
+              </p>
+            </form>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+              <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
+              <span style={{ color: '#9CA3AF', fontSize: '0.78rem' }}>¿Ya tienes cuenta?</span>
+              <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
+            </div>
+
+            <Link href="/login" className="btn-secondary">Iniciar sesión</Link>
+          </>
+        )}
       </div>
     </div>
   )
