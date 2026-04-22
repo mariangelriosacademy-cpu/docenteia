@@ -26,12 +26,9 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar — oculto en móvil, visible en md+ */}
       <div className="hidden md:block">
         <Sidebar nombre={nombre} plan={plan} iniciales={iniciales} signOutAction={signOut} />
       </div>
-
-      {/* Contenido principal */}
       <div className="flex flex-col flex-1 md:ml-56">
         <Header nombre={nombre} iniciales={iniciales} signOutAction={signOut} />
         <main className="flex-1 p-4 md:p-8">
