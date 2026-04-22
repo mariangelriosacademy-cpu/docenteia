@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Planea Suite AI",
+  title: "Docenly",
   description: "Plataforma educativa con inteligencia artificial",
 };
 
