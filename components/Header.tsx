@@ -38,10 +38,7 @@ export default function Header({ nombre, iniciales, signOutAction }: Props) {
       />
     </div>
   </div>
-Luego:
-powershellgit add .
-git commit -m "Agrega buscador en Header"
-npx vercel --prodHeaderCódigo · TSX Descargar
+
 
         {/* Avatar + nombre + logout */}
         <div className="flex items-center gap-3">
