@@ -86,7 +86,7 @@ export default function LandingPage() {
         .nav-link:hover { color: #00A3FF; }
 
         .hero-bg { position: relative; min-height: 100vh; background: linear-gradient(135deg, #0d0a2e 0%, #1A2B56 40%, #0d2a4e 100%); overflow: hidden; }
-        .hero-bg::before { content: ''; position: absolute; inset: 0; background: url('/hero-bg.png') center/cover no-repeat; opacity: 0.20; }
+        .hero-bg::before { content: ''; position: absolute; inset: 0; background: url('/hero-bg.jpg') center/cover no-repeat; opacity: 0.20; }
         .hero-bg::after  { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 60%, rgba(0,163,255,0.12) 0%, transparent 65%), linear-gradient(to bottom, rgba(10,8,40,0.45) 0%, rgba(10,8,40,0.78) 100%); }
         .hero-content { position: relative; z-index: 2; }
 
