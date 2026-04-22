@@ -23,14 +23,12 @@ export default function ActualizarPasswordPage() {
       setError('La contraseña debe tener mínimo 8 caracteres')
       return
     }
-
     if (password !== confirmar) {
       setError('Las contraseñas no coinciden')
       return
     }
 
     setCargando(true)
-
     const { error } = await supabase.auth.updateUser({ password })
 
     if (error) {
@@ -41,24 +39,29 @@ export default function ActualizarPasswordPage() {
 
     setExito(true)
     setCargando(false)
-
-    // Redirige al dashboard después de 2 segundos
     setTimeout(() => router.push('/dashboard'), 2000)
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center
-                    bg-gradient-to-br from-[#1A1A5E] to-[#3D3B8E] px-4">
+                    bg-gradient-to-br from-[#2D1B69] to-[#4F46E5] px-4">
 
       <div className="w-full max-w-md bg-white rounded-2xl
                       shadow-2xl overflow-hidden">
 
         {/* Header */}
-        <div className="bg-[#3D3B8E] px-8 py-8 text-center">
-          <h1 className="text-3xl font-bold text-white tracking-tight">
-            Docente<span className="text-[#0D9488]">IA</span>
-          </h1>
-          <p className="text-indigo-200 text-sm mt-1">
+        <div className="bg-gradient-to-br from-[#2D1B69] to-[#4F46E5]
+                        px-8 py-8 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="text-3xl font-bold text-white tracking-tight">
+              Class
+            </span>
+            <span className="text-3xl font-bold text-[#F97316] tracking-tight">
+              Mind
+            </span>
+            <span className="text-2xl">🎓</span>
+          </div>
+          <p className="text-indigo-200 text-sm">
             Crea tu nueva contraseña
           </p>
         </div>
@@ -76,8 +79,9 @@ export default function ActualizarPasswordPage() {
                 Redirigiendo a tu dashboard...
               </p>
               <div className="mt-4 flex justify-center">
-                <div className="w-6 h-6 border-2 border-[#3D3B8E]
-                                border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-[#F97316]
+                                border-t-transparent rounded-full
+                                animate-spin" />
               </div>
             </div>
 
@@ -90,11 +94,10 @@ export default function ActualizarPasswordPage() {
                 Elige una contraseña segura para tu cuenta.
               </p>
 
-              {/* Error */}
               {error && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200
                                 rounded-lg flex items-center gap-2">
-                  <span className="text-red-500 text-lg">⚠️</span>
+                  <span className="text-lg">⚠️</span>
                   <p className="text-red-600 text-sm">{error}</p>
                 </div>
               )}
@@ -119,13 +122,13 @@ export default function ActualizarPasswordPage() {
                     placeholder="Mínimo 8 caracteres"
                     className="w-full px-4 py-3 border border-gray-300
                                rounded-lg text-sm focus:outline-none
-                               focus:ring-2 focus:ring-[#3D3B8E]
+                               focus:ring-2 focus:ring-[#4F46E5]
                                focus:border-transparent transition-all
                                placeholder:text-gray-400"
                   />
                 </div>
 
-                {/* Confirmar contraseña */}
+                {/* Confirmar */}
                 <div>
                   <label
                     htmlFor="confirmar"
@@ -142,12 +145,12 @@ export default function ActualizarPasswordPage() {
                     placeholder="Repite la contraseña"
                     className="w-full px-4 py-3 border border-gray-300
                                rounded-lg text-sm focus:outline-none
-                               focus:ring-2 focus:ring-[#3D3B8E]
+                               focus:ring-2 focus:ring-[#4F46E5]
                                focus:border-transparent transition-all
                                placeholder:text-gray-400"
                   />
 
-                  {/* Indicador de coincidencia */}
+                  {/* Indicador */}
                   {confirmar && (
                     <p className={`text-xs mt-1 ${
                       password === confirmar
@@ -165,13 +168,13 @@ export default function ActualizarPasswordPage() {
                 <button
                   type="submit"
                   disabled={cargando || password !== confirmar}
-                  className="w-full py-3 bg-[#0D9488] text-white
-                             font-semibold rounded-lg hover:bg-[#0B7A70]
+                  className="w-full py-3 bg-[#F97316] text-white
+                             font-semibold rounded-lg hover:bg-[#EA6C0A]
                              active:scale-95 transition-all text-sm
                              shadow-md disabled:opacity-50
                              disabled:cursor-not-allowed
                              focus:outline-none focus:ring-2
-                             focus:ring-[#0D9488] focus:ring-offset-2"
+                             focus:ring-[#F97316] focus:ring-offset-2"
                 >
                   {cargando ? (
                     <span className="flex items-center justify-center gap-2">
@@ -190,7 +193,8 @@ export default function ActualizarPasswordPage() {
               <div className="mt-6 text-center">
                 <Link
                   href="/login"
-                  className="text-sm text-[#3D3B8E] hover:underline font-medium"
+                  className="text-sm text-[#4F46E5] hover:text-[#F97316]
+                             transition-colors font-medium"
                 >
                   ← Volver al inicio de sesión
                 </Link>

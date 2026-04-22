@@ -12,37 +12,76 @@ export default async function RecuperarPage({ searchParams }: RecuperarPageProps
 
   return (
     <div className="min-h-screen flex items-center justify-center
-                    bg-gradient-to-br from-[#1A1A5E] to-[#3D3B8E] px-4">
+                    bg-gradient-to-br from-[#2D1B69] to-[#4F46E5] px-4">
 
       <div className="w-full max-w-md bg-white rounded-2xl
                       shadow-2xl overflow-hidden">
 
         {/* Header */}
-        <div className="bg-[#3D3B8E] px-8 py-8 text-center">
-          <h1 className="text-3xl font-bold text-white tracking-tight">
-            Docente<span className="text-[#0D9488]">IA</span>
-          </h1>
-          <p className="text-indigo-200 text-sm mt-1">
+        <div className="bg-gradient-to-br from-[#2D1B69] to-[#4F46E5]
+                        px-8 py-8 text-center">
+
+          {/* Logo */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            marginBottom: '8px'
+          }}>
+            <span style={{
+              fontSize: '30px',
+              fontWeight: 'bold',
+              color: 'white',
+              lineHeight: '1'
+            }}>
+              Class
+            </span>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              marginLeft: '0px'
+            }}>
+              <span style={{
+                fontSize: '16px',
+                lineHeight: '1',
+                marginBottom: '1px'
+              }}>
+                🎓
+              </span>
+              <span style={{
+                fontSize: '30px',
+                fontWeight: 'bold',
+                color: '#F97316',
+                lineHeight: '1'
+              }}>
+                Mind
+              </span>
+            </div>
+          </div>
+
+          <p className="text-indigo-200 text-sm">
             Recupera el acceso a tu cuenta
           </p>
         </div>
 
         <div className="px-8 py-8">
 
+          {/* Estado: correo enviado */}
           {mensaje ? (
             <div className="text-center py-4">
               <div className="text-6xl mb-4">📬</div>
               <h2 className="text-xl font-bold text-gray-800 mb-2">
                 ¡Correo enviado!
               </h2>
-              <p className="text-gray-500 text-sm mb-6">{mensaje}</p>
+              <p className="text-gray-500 text-sm mb-2">{mensaje}</p>
               <p className="text-gray-400 text-xs mb-6">
-                Revisa también tu carpeta de spam si no lo encuentras.
+                Revisa también tu carpeta de spam.
               </p>
               <Link
                 href="/login"
-                className="block w-full py-3 bg-[#3D3B8E] text-white
-                           font-semibold rounded-lg hover:bg-[#2D2B7E]
+                className="block w-full py-3 bg-[#F97316] text-white
+                           font-semibold rounded-lg hover:bg-[#EA6C0A]
                            transition-all text-sm text-center"
               >
                 Volver al inicio de sesión
@@ -59,15 +98,18 @@ export default async function RecuperarPage({ searchParams }: RecuperarPageProps
                 para restablecer tu contraseña.
               </p>
 
+              {/* Error */}
               {error && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200
                                 rounded-lg flex items-center gap-2">
-                  <span className="text-red-500 text-lg">⚠️</span>
+                  <span className="text-lg">⚠️</span>
                   <p className="text-red-600 text-sm">{error}</p>
                 </div>
               )}
 
               <form action={recuperarPassword} className="space-y-5">
+
+                {/* Email */}
                 <div>
                   <label
                     htmlFor="email"
@@ -83,28 +125,31 @@ export default async function RecuperarPage({ searchParams }: RecuperarPageProps
                     placeholder="tu@correo.com"
                     className="w-full px-4 py-3 border border-gray-300
                                rounded-lg text-sm focus:outline-none
-                               focus:ring-2 focus:ring-[#3D3B8E]
+                               focus:ring-2 focus:ring-[#4F46E5]
                                focus:border-transparent transition-all
                                placeholder:text-gray-400"
                   />
                 </div>
 
+                {/* Botón */}
                 <button
                   type="submit"
-                  className="w-full py-3 bg-[#3D3B8E] text-white
-                             font-semibold rounded-lg hover:bg-[#2D2B7E]
+                  className="w-full py-3 bg-[#F97316] text-white
+                             font-semibold rounded-lg hover:bg-[#EA6C0A]
                              active:scale-95 transition-all text-sm
                              shadow-md focus:outline-none focus:ring-2
-                             focus:ring-[#3D3B8E] focus:ring-offset-2"
+                             focus:ring-[#F97316] focus:ring-offset-2"
                 >
                   Enviar enlace de recuperación →
                 </button>
+
               </form>
 
               <div className="mt-6 text-center">
                 <Link
                   href="/login"
-                  className="text-sm text-[#3D3B8E] hover:underline font-medium"
+                  className="text-sm text-[#4F46E5] hover:text-[#F97316]
+                             transition-colors font-medium"
                 >
                   ← Volver al inicio de sesión
                 </Link>

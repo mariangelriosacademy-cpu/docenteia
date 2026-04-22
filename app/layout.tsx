@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "ClassMind",
+  title: "Planea Suite AI",
   description: "Plataforma educativa con inteligencia artificial",
 };
 

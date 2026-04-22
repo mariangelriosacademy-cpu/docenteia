@@ -1,4 +1,6 @@
-import Link from 'next/link'
+const fs = require('fs')
+
+const content = `import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/Sidebar'
 import BannerRotativo from '@/components/BannerRotativo'
@@ -54,7 +56,7 @@ export default async function DashboardPage() {
   const sugerencia = sugerenciasIA[new Date().getDay() % sugerenciasIA.length]
 
   const stats = [
-    { label: 'Planificaciones', valor: clasesCount      || 0, sub: `${pendientesCount || 0} pendientes`,  color: '#00A3FF', alerta: (pendientesCount || 0) > 0 },
+    { label: 'Planificaciones', valor: clasesCount      || 0, sub: \`\${pendientesCount || 0} pendientes\`,  color: '#00A3FF', alerta: (pendientesCount || 0) > 0 },
     { label: 'Estudiantes',     valor: estudiantesCount  || 0, sub: 'registrados',                          color: '#1A2B56', alerta: false },
     { label: 'Sin calificar',   valor: sinCalificarCount || 0, sub: 'evaluaciones pendientes',               color: '#8E2DE2', alerta: (sinCalificarCount || 0) > 0 },
     { label: 'Prompts usados',  valor: promptsCount      || 0, sub: 'generados con IA',                      color: '#00D2FF', alerta: false },
@@ -62,7 +64,7 @@ export default async function DashboardPage() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#F8F9FA', fontFamily: "'Inter', -apple-system, sans-serif" }}>
-      <style>{`
+      <style>{\`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; }
         .stat-card { background: white; border-radius: 10px; border: 1px solid #e8edf5; padding: 18px 20px; display: flex; align-items: center; gap: 14px; transition: box-shadow 0.2s; position: relative; overflow: hidden; }
@@ -77,7 +79,7 @@ export default async function DashboardPage() {
         .tip-card { background: white; border-radius: 10px; border: 1px solid #e8edf5; padding: 20px; }
         @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
         .pulse-dot { animation: pulse-dot 2s infinite; }
-      `}</style>
+      \`}</style>
 
       {/* Sidebar */}
       <Sidebar nombre={nombre} plan={plan} iniciales={iniciales} signOutAction={signOut} />
@@ -103,7 +105,7 @@ export default async function DashboardPage() {
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 24 }}>
           {stats.map(s => (
-            <div key={s.label} className={`stat-card ${s.alerta ? 'stat-alerta' : ''}`}>
+            <div key={s.label} className={\`stat-card \${s.alerta ? 'stat-alerta' : ''}\`}>
               <div style={{ width: 38, height: 38, borderRadius: 8, background: s.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', flexShrink: 0 }}>
                 <div style={{ width: 12, height: 12, borderRadius: '50%', background: s.color }} />
                 {s.alerta && <div className="pulse-dot" style={{ position: 'absolute', top: -2, right: -2, width: 8, height: 8, borderRadius: '50%', background: '#f59e0b', border: '2px solid white' }} />}
@@ -175,4 +177,7 @@ export default async function DashboardPage() {
       </main>
     </div>
   )
-}
+}`
+
+fs.writeFileSync('./app/dashboard/page.tsx', content, 'utf8')
+console.log('✅ Dashboard actualizado!')
