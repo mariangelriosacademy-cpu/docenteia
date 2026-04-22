@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Menu, X, LogOut } from 'lucide-react'
+import { Menu, X, LogOut, Search } from 'lucide-react'
 import Sidebar from '@/components/Sidebar'
 import { signOut } from '@/lib/auth/actions'
 
@@ -17,21 +17,31 @@ export default function Header({ nombre, iniciales, signOutAction }: Props) {
   return (
     <>
       {/* Header */}
-      <header className="sticky top-0 z-30 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-100 shadow-sm">
-        {/* Botón hamburguesa — solo móvil */}
-        <button
-          className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Abrir menú"
-        >
-          <Menu size={20} />
-        </button>
+      <header className="sticky top-0 z-30 flex items-center justify-between h-14 px-4 bg-white border-b border-gray-100 shadow-sm gap-4">
+  {/* Botón hamburguesa — solo móvil */}
+  <button
+    className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition flex-shrink-0"
+    onClick={() => setMobileOpen(true)}
+    aria-label="Abrir menú"
+  >
+    <Menu size={20} />
+  </button>
 
-        {/* Título en móvil */}
-        <span className="md:hidden text-sm font-semibold text-gray-700">Docenly</span>
-
-        {/* Spacer en desktop */}
-        <div className="hidden md:block" />
+  {/* Buscador central */}
+  <div className="flex-1 max-w-xl mx-auto">
+    <div className="relative">
+      <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+      <input
+        type="text"
+        placeholder="¿Qué quieres hacer hoy?"
+        className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition"
+      />
+    </div>
+  </div>
+Luego:
+powershellgit add .
+git commit -m "Agrega buscador en Header"
+npx vercel --prodHeaderCódigo · TSX Descargar
 
         {/* Avatar + nombre + logout */}
         <div className="flex items-center gap-3">
