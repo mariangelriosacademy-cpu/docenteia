@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useNotification } from '@/hooks/useNotification'
 
 export default function LoginPage() {
   const [email,    setEmail]    = useState('')
@@ -11,17 +12,25 @@ export default function LoginPage() {
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
   const router = useRouter()
+  const { notifySuccess, notifyError, notifyLoading, notifyDismiss } = useNotification()
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
+
+    const toastId = notifyLoading('Iniciando sesión...')
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
+
+    notifyDismiss(toastId)
+
     if (error) {
+      notifyError('Correo o contraseña incorrectos')
       setError('Correo o contraseña incorrectos')
       setLoading(false)
     } else {
+      notifySuccess('¡Bienvenido de vuelta! 👋')
       router.push('/dashboard')
     }
   }

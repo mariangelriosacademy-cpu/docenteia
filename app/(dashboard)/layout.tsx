@@ -14,28 +14,22 @@ export default async function DashboardLayout({
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
-  .from('profiles')
-  .select('nombre, plan, avatar_url')
-  .eq('id', user.id)
-  .single()
+    .from('profiles')
+    .select('nombre, plan')
+    .eq('id', user.id)
+    .single()
 
   const nombre = profile?.nombre || user.user_metadata?.nombre || user.email?.split('@')[0] || 'Docente'
   const plan = profile?.plan || 'free'
   const iniciales = nombre.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
-  const avatarUrl = profile?.avatar_url || null
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <div className="hidden md:block">
-        <Sidebar nombre={nombre} plan={plan} iniciales={iniciales} avatarUrl={avatarUrl} signOutAction={signOut} />
+        <Sidebar nombre={nombre} plan={plan} iniciales={iniciales} signOutAction={signOut} />
       </div>
       <div className="flex flex-col flex-1 md:ml-56">
-        <Header
-  nombre={nombre}
-  iniciales={iniciales}
-  avatarUrl={avatarUrl}
-  signOutAction={signOut}
-/>
+        <Header nombre={nombre} iniciales={iniciales} signOutAction={signOut} />
         <main className="flex-1 p-4 md:p-8">
           {children}
         </main>

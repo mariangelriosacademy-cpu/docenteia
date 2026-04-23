@@ -1,183 +1,342 @@
 const fs = require('fs')
+const path = require('path')
 
-const content = `import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import Sidebar from '@/components/Sidebar'
-import BannerRotativo from '@/components/BannerRotativo'
-import { signOut } from '@/lib/auth/actions'
+// Crear carpeta si no existe
+const dir = './app/configuracion'
+if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 
-const tipsEducativos = [
-  { icono: '💡', titulo: 'Tip del día', texto: 'La evaluación formativa continua mejora el aprendizaje hasta un 40% más que la evaluación sumativa tradicional.' },
-  { icono: '🧠', titulo: 'Neuroeducación', texto: 'El cerebro consolida mejor la información cuando se estudia en sesiones cortas con descansos de 10 minutos.' },
-  { icono: '🎯', titulo: 'Estrategia', texto: 'El aprendizaje basado en proyectos aumenta la motivación intrínseca y el pensamiento crítico.' },
-  { icono: '📚', titulo: 'Reflexión', texto: '"El buen maestro no es el que da las mejores respuestas, sino el que hace las mejores preguntas." — Ken Robinson' },
-  { icono: '🤖', titulo: 'IA en el aula', texto: 'Usar IA como asistente pedagógico puede reducir el tiempo de planificación hasta en 8 horas semanales.' },
+const content = `'use client'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+
+const paises = ['Argentina','Bolivia','Chile','Colombia','Costa Rica','Cuba','Ecuador','El Salvador','España','Guatemala','Honduras','México','Nicaragua','Panamá','Paraguay','Perú','Puerto Rico','República Dominicana','Uruguay','Venezuela','Otro']
+
+const materiasList = ['Matemáticas','Lenguaje','Ciencias Naturales','Ciencias Sociales','Historia','Geografía','Inglés','Educación Física','Arte','Música','Tecnología','Filosofía','Química','Física','Biología','Otro']
+
+const planes = [
+  { nombre: 'Gratis', precio: '$0', periodo: 'para siempre', creditos: '50 créditos/mes', features: ['50 créditos de IA', '3 evaluaciones', '1 proyecto', 'Soporte por email'], color: '#1A2B56' },
+  { nombre: 'Pro Mensual', precio: '$20 USD', periodo: '/mes', creditos: '1.000 créditos/mes', features: ['1.000 créditos de IA', 'Evaluaciones ilimitadas', 'Proyectos ilimitados', 'Soporte prioritario'], color: '#00A3FF', popular: true },
+  { nombre: 'Pro Anual', precio: '$200 USD', periodo: '/año', creditos: '1.000 créditos/mes', features: ['Todo lo de Pro Mensual', 'Ahorras $40 al año', 'Acceso anticipado'], color: '#8E2DE2' },
 ]
 
-const sugerenciasIA = [
-  { texto: 'Crea una evaluación diagnóstica para comenzar el nuevo período escolar.', accion: 'Crear ahora', href: '/dashboard/evaluaciones/nueva' },
-  { texto: 'Genera una planificación semanal alineada al currículo de tu país en segundos.', accion: 'Planificar', href: '/dashboard/planeacion/nueva' },
-  { texto: 'Diseña una rúbrica personalizada para tu próxima actividad con IA.', accion: 'Crear rúbrica', href: '/dashboard/evaluaciones/rubrica' },
-  { texto: 'Crea un comunicado para los padres de familia con lenguaje profesional.', accion: 'Redactar', href: '/dashboard/oficina/correos' },
-  { texto: 'Genera actividades diferenciadas para estudiantes con distintos niveles.', accion: 'Generar', href: '/dashboard/clases/actividades' },
-]
+export default function ConfiguracionPage() {
+  const supabase = createClient()
+  const router = useRouter()
 
-const accionesRapidas = [
-  { label: '+ Lección',    href: '/dashboard/clases/nueva',       color: '#1A2B56' },
-  { label: '+ Evaluación', href: '/dashboard/evaluaciones/nueva', color: '#8E2DE2' },
-  { label: '+ Actividad',  href: '/dashboard/planeacion/nueva',   color: '#00A3FF' },
-  { label: '+ Recursos',   href: '/dashboard/recursos/nuevo',     color: '#00868a' },
-]
+  const [user, setUser]         = useState<any>(null)
+  const [nombre, setNombre]     = useState('')
+  const [pais, setPais]         = useState('')
+  const [materias, setMaterias] = useState<string[]>([])
+  const [idioma, setIdioma]     = useState('es')
+  const [plan, setPlan]         = useState('free')
+  const [saving, setSaving]     = useState(false)
+  const [savedOk, setSavedOk]   = useState(false)
 
-export default async function DashboardPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [passNueva, setPassNueva]     = useState('')
+  const [passConfirm, setPassConfirm] = useState('')
+  const [passError, setPassError]     = useState('')
+  const [passOk, setPassOk]           = useState(false)
+  const [savingPass, setSavingPass]   = useState(false)
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('nombre, plan')
-    .eq('id', user?.id)
-    .single()
+  const [modalPlan, setModalPlan]     = useState(false)
+  const [modalDelete, setModalDelete] = useState(false)
+  const [confirmText, setConfirmText] = useState('')
+  const [deleting, setDeleting]       = useState(false)
 
-  const { count: clasesCount }       = await supabase.from('planificaciones').select('*', { count: 'exact', head: true }).eq('user_id', user?.id)
-  const { count: estudiantesCount }  = await supabase.from('estudiantes').select('*', { count: 'exact', head: true }).eq('user_id', user?.id)
-  const { count: evaluacionesCount } = await supabase.from('calificaciones').select('*', { count: 'exact', head: true }).eq('estudiante_id', user?.id)
-  const { count: promptsCount }      = await supabase.from('prompts').select('*', { count: 'exact', head: true }).eq('user_id', user?.id)
-  const { count: pendientesCount }   = await supabase.from('planificaciones').select('*', { count: 'exact', head: true }).eq('user_id', user?.id).eq('estado', 'pendiente')
-  const { count: sinCalificarCount } = await supabase.from('calificaciones').select('*', { count: 'exact', head: true }).eq('user_id', user?.id).eq('calificado', false)
+  useEffect(() => {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      setUser(user)
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      if (profile) {
+        setNombre(profile.nombre || '')
+        setPais(profile.pais || '')
+        setMaterias(profile.materias || [])
+        setIdioma(profile.idioma || 'es')
+        setPlan(profile.plan || 'free')
+      }
+    }
+    load()
+  }, [])
 
-  const nombre    = profile?.nombre || 'Docente'
-  const plan      = profile?.plan   || 'free'
-  const isPro     = plan === 'pro'
-  const iniciales = nombre.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
-  const hora      = new Date().getHours()
-  const saludo    = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches'
-  const tipHoy    = tipsEducativos[new Date().getDay() % tipsEducativos.length]
-  const sugerencia = sugerenciasIA[new Date().getDay() % sugerenciasIA.length]
+  async function guardarPerfil() {
+    if (!user) return
+    setSaving(true); setSavedOk(false)
+    await supabase.from('profiles').update({ nombre, pais, materias, idioma }).eq('id', user.id)
+    setSaving(false); setSavedOk(true)
+    setTimeout(() => setSavedOk(false), 3000)
+  }
 
-  const stats = [
-    { label: 'Planificaciones', valor: clasesCount      || 0, sub: \`\${pendientesCount || 0} pendientes\`,  color: '#00A3FF', alerta: (pendientesCount || 0) > 0 },
-    { label: 'Estudiantes',     valor: estudiantesCount  || 0, sub: 'registrados',                          color: '#1A2B56', alerta: false },
-    { label: 'Sin calificar',   valor: sinCalificarCount || 0, sub: 'evaluaciones pendientes',               color: '#8E2DE2', alerta: (sinCalificarCount || 0) > 0 },
-    { label: 'Prompts usados',  valor: promptsCount      || 0, sub: 'generados con IA',                      color: '#00D2FF', alerta: false },
-  ]
+  async function cambiarPassword() {
+    setPassError(''); setPassOk(false)
+    if (passNueva !== passConfirm) { setPassError('Las contraseñas no coinciden.'); return }
+    if (passNueva.length < 8) { setPassError('Mínimo 8 caracteres.'); return }
+    setSavingPass(true)
+    const { error } = await supabase.auth.updateUser({ password: passNueva })
+    setSavingPass(false)
+    if (error) { setPassError(error.message); return }
+    setPassOk(true); setPassNueva(''); setPassConfirm('')
+    setTimeout(() => setPassOk(false), 3000)
+  }
+
+  async function eliminarCuenta() {
+    if (confirmText !== 'CONFIRMAR' || !user) return
+    setDeleting(true)
+    await supabase.from('profiles').delete().eq('id', user.id)
+    await supabase.auth.signOut()
+    router.push('/')
+  }
+
+  function toggleMateria(m: string) {
+    setMaterias(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])
+  }
+
+  const isPro = plan === 'pro'
+  const iniciales = nombre ? nombre.split(' ').map((n:string) => n[0]).join('').slice(0,2).toUpperCase() : 'D'
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8F9FA', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#F8F9FA', fontFamily: "'Inter', sans-serif", paddingBottom: 60 }}>
       <style>{\`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; }
-        .stat-card { background: white; border-radius: 10px; border: 1px solid #e8edf5; padding: 18px 20px; display: flex; align-items: center; gap: 14px; transition: box-shadow 0.2s; position: relative; overflow: hidden; }
-        .stat-card:hover { box-shadow: 0 4px 16px rgba(0,163,255,0.08); }
-        .stat-alerta::after { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: #f59e0b; }
-        .ia-card { background: linear-gradient(135deg, #0d0a2e 0%, #1A2B56 100%); border-radius: 12px; padding: 22px 26px; border: 1px solid rgba(0,163,255,0.2); position: relative; overflow: hidden; }
-        .ia-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(0,163,255,0.12) 0%, transparent 70%); }
-        .wow-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; background: linear-gradient(135deg, #00A3FF 0%, #8E2DE2 100%); color: white; font-weight: 700; font-size: 0.95rem; text-decoration: none; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,163,255,0.35); transition: all 0.2s; white-space: nowrap; }
-        .wow-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,163,255,0.45); }
-        .accion-card { display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 1.05rem; font-weight: 700; color: white; text-decoration: none; height: 90px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-        .accion-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.22); filter: brightness(1.1); }
-        .tip-card { background: white; border-radius: 10px; border: 1px solid #e8edf5; padding: 20px; }
-        @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-        .pulse-dot { animation: pulse-dot 2s infinite; }
+        .card { background: white; border-radius: 14px; border: 1px solid #e8edf5; padding: 28px 32px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+        .card-title { font-size: 0.95rem; font-weight: 700; color: #111827; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .card-desc { font-size: 0.8rem; color: #6B7280; margin-bottom: 22px; }
+        .lbl { display: block; font-size: 0.78rem; font-weight: 600; color: #374151; margin-bottom: 5px; }
+        .inp { width: 100%; padding: 10px 13px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 0.88rem; font-family: inherit; color: #111827; background: white; outline: none; transition: all 0.2s; }
+        .inp:focus { border-color: #00A3FF; box-shadow: 0 0 0 3px rgba(0,163,255,0.08); }
+        .inp:disabled { background: #f9fafb; color: #9CA3AF; cursor: not-allowed; }
+        .btn-main { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; background: linear-gradient(135deg,#00A3FF,#8E2DE2); color: white; font-weight: 600; font-size: 0.85rem; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; transition: all 0.2s; box-shadow: 0 2px 10px rgba(0,163,255,0.2); }
+        .btn-main:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-sec { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; background: white; color: #1A2B56; font-weight: 600; font-size: 0.85rem; border: 1.5px solid #d1d5db; border-radius: 8px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .btn-sec:hover { border-color: #00A3FF; color: #00A3FF; }
+        .btn-danger { display: inline-flex; align-items: center; gap: 7px; padding: 10px 20px; background: white; color: #dc2626; font-weight: 600; font-size: 0.85rem; border: 1.5px solid #fecaca; border-radius: 8px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .btn-danger:hover { background: #fef2f2; border-color: #dc2626; }
+        .chip { display: inline-flex; align-items: center; padding: 5px 12px; border-radius: 999px; font-size: 0.76rem; font-weight: 500; cursor: pointer; transition: all 0.15s; border: 1.5px solid #e2e8f0; background: white; color: #4B5563; margin: 3px; }
+        .chip.on { background: rgba(0,163,255,0.1); border-color: #00A3FF; color: #00A3FF; font-weight: 600; }
+        .chip:hover { border-color: #00A3FF; }
+        .ok { display: flex; align-items: center; gap: 8px; padding: 9px 13px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; color: #166534; font-size: 0.82rem; font-weight: 500; margin-top: 12px; }
+        .err { display: flex; align-items: center; gap: 8px; padding: 9px 13px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 0.82rem; font-weight: 500; margin-top: 12px; }
+        .plan-card { border-radius: 12px; padding: 20px 22px; border: 2px solid #e2e8f0; transition: all 0.2s; position: relative; }
+        .plan-card.popular { border-color: #00A3FF; box-shadow: 0 8px 24px rgba(0,163,255,0.12); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal { background: white; border-radius: 16px; padding: 32px; max-width: 560px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
+        .divider { height: 1px; background: #f1f5f9; margin: 20px 0; }
       \`}</style>
 
-      {/* Sidebar */}
-      <Sidebar nombre={nombre} plan={plan} iniciales={iniciales} signOutAction={signOut} />
+      {/* Top bar */}
+      <div style={{ background: 'white', borderBottom: '1px solid #e8edf5', padding: '14px 32px', display: 'flex', alignItems: 'center', gap: 14, position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 1px 0 #e8edf5' }}>
+        <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6B7280', textDecoration: 'none', fontSize: '0.82rem', fontWeight: 500, transition: 'color 0.2s' }}>
+          ← Dashboard
+        </Link>
+        <span style={{ color: '#e2e8f0' }}>|</span>
+        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#111827' }}>⚙️ Configuración de cuenta</span>
+      </div>
 
-      {/* Main */}
-      <main style={{ flex: 1, marginLeft: 224, padding: '28px 32px', minHeight: '100vh' }}>
+      <div style={{ maxWidth: 700, margin: '28px auto', padding: '0 20px' }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <div>
-            <h1 style={{ fontSize: '1.45rem', fontWeight: 700, color: '#111827', letterSpacing: '-0.025em', marginBottom: 4 }}>
-              {saludo}, {nombre.split(' ')[0]} 👋
-            </h1>
-            <p style={{ fontSize: '0.85rem', color: '#6B7280', fontWeight: 400 }}>Aquí tienes un resumen de tu actividad en Docenly</p>
+        {/* Avatar + nombre */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24, padding: '20px 24px', background: 'white', borderRadius: 14, border: '1px solid #e8edf5' }}>
+          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg,#00A3FF,#8E2DE2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 800, color: 'white', flexShrink: 0 }}>
+            {iniciales}
           </div>
+          <div>
+            <p style={{ fontWeight: 700, color: '#111827', fontSize: '1rem' }}>{nombre || 'Tu nombre'}</p>
+            <p style={{ color: '#6B7280', fontSize: '0.82rem', marginTop: 2 }}>{user?.email}</p>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: isPro ? 'rgba(0,163,255,0.1)' : 'rgba(0,0,0,0.06)', color: isPro ? '#00A3FF' : '#6B7280', letterSpacing: '0.05em', marginTop: 4, display: 'inline-block' }}>
+              {isPro ? '⭐ PRO' : 'FREE'}
+            </span>
+          </div>
+        </div>
+
+        {/* ── 1. INFORMACIÓN PERSONAL ── */}
+        <div className="card">
+          <p className="card-title">👤 Información personal</p>
+          <p className="card-desc">Actualiza tus datos de perfil en la plataforma.</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+            <div>
+              <label className="lbl">Nombre completo</label>
+              <input className="inp" type="text" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Tu nombre" />
+            </div>
+            <div>
+              <label className="lbl">Correo electrónico</label>
+              <input className="inp" type="email" value={user?.email || ''} disabled />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+            <div>
+              <label className="lbl">País</label>
+              <select className="inp" value={pais} onChange={e => setPais(e.target.value)} style={{ cursor: 'pointer' }}>
+                <option value="">Selecciona tu país</option>
+                {paises.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="lbl">Idioma preferido</label>
+              <select className="inp" value={idioma} onChange={e => setIdioma(e.target.value)} style={{ cursor: 'pointer' }}>
+                <option value="es">🇪🇸 Español</option>
+                <option value="en">🇺🇸 English</option>
+                <option value="pt">🇧🇷 Português</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <label className="lbl">Materias que enseñas</label>
+            <div style={{ marginTop: 4 }}>
+              {materiasList.map(m => (
+                <span key={m} className={\`chip \${materias.includes(m) ? 'on' : ''}\`} onClick={() => toggleMateria(m)}>{m}</span>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button className="btn-main" onClick={guardarPerfil} disabled={saving}>
+              {saving ? '⏳ Guardando...' : '💾 Guardar cambios'}
+            </button>
+            {savedOk && <div className="ok">✅ Cambios guardados correctamente</div>}
+          </div>
+        </div>
+
+        {/* ── 2. PLAN ACTUAL ── */}
+        <div className="card">
+          <p className="card-title">💳 Plan actual</p>
+          <p className="card-desc">Gestiona tu suscripción y accede a más funciones.</p>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderRadius: 10, background: isPro ? 'linear-gradient(135deg, rgba(0,163,255,0.08), rgba(142,45,226,0.08))' : '#f9fafb', border: isPro ? '1.5px solid rgba(0,163,255,0.2)' : '1.5px solid #e2e8f0', marginBottom: 16 }}>
+            <div>
+              <p style={{ fontWeight: 700, color: '#111827', fontSize: '0.95rem' }}>{isPro ? '⭐ Plan Pro' : '🆓 Plan Gratuito'}</p>
+              <p style={{ color: '#6B7280', fontSize: '0.8rem', marginTop: 3 }}>
+                {isPro ? '1.000 créditos/mes · Funciones ilimitadas' : '50 créditos/mes · Funciones básicas'}
+              </p>
+            </div>
+            {!isPro && (
+              <button className="btn-main" onClick={() => setModalPlan(true)}>✨ Mejorar a Pro</button>
+            )}
+            {isPro && (
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '4px 12px', borderRadius: 999, background: 'rgba(0,163,255,0.1)', color: '#00A3FF' }}>Activo</span>
+            )}
+          </div>
+
           {!isPro && (
-            <Link href="/precios" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, background: 'linear-gradient(135deg,#00A3FF,#8E2DE2)', color: 'white', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none', boxShadow: '0 2px 12px rgba(0,163,255,0.25)' }}>
-              ✨ Activar Pro
-            </Link>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+              {planes.map(p => (
+                <div key={p.nombre} className={\`plan-card \${p.popular ? 'popular' : ''}\`}>
+                  {p.popular && <span style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', background: '#00A3FF', color: 'white', fontSize: '0.65rem', fontWeight: 700, padding: '2px 10px', borderRadius: 999, whiteSpace: 'nowrap' }}>MÁS POPULAR</span>}
+                  <p style={{ fontWeight: 700, color: p.color, fontSize: '0.9rem', marginBottom: 4 }}>{p.nombre}</p>
+                  <p style={{ fontWeight: 800, color: '#111827', fontSize: '1.3rem', letterSpacing: '-0.03em' }}>{p.precio}<span style={{ fontSize: '0.72rem', color: '#9CA3AF', fontWeight: 400 }}> {p.periodo}</span></p>
+                  <p style={{ fontSize: '0.72rem', color: p.color, fontWeight: 600, marginTop: 4 }}>{p.creditos}</p>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 24 }}>
-          {stats.map(s => (
-            <div key={s.label} className={\`stat-card \${s.alerta ? 'stat-alerta' : ''}\`}>
-              <div style={{ width: 38, height: 38, borderRadius: 8, background: s.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', flexShrink: 0 }}>
-                <div style={{ width: 12, height: 12, borderRadius: '50%', background: s.color }} />
-                {s.alerta && <div className="pulse-dot" style={{ position: 'absolute', top: -2, right: -2, width: 8, height: 8, borderRadius: '50%', background: '#f59e0b', border: '2px solid white' }} />}
-              </div>
-              <div>
-                <p style={{ fontSize: '1.65rem', fontWeight: 800, color: s.color, lineHeight: 1, letterSpacing: '-0.04em' }}>{s.valor}</p>
-                <p style={{ fontSize: '0.72rem', color: '#6B7280', marginTop: 2, fontWeight: 500 }}>{s.label}</p>
-                <p style={{ fontSize: '0.65rem', color: s.alerta ? '#f59e0b' : '#9CA3AF', marginTop: 1, fontWeight: s.alerta ? 600 : 400 }}>{s.sub}</p>
-              </div>
+        {/* ── 3. SEGURIDAD ── */}
+        <div className="card">
+          <p className="card-title">🔒 Seguridad</p>
+          <p className="card-desc">Cambia tu contraseña para mantener tu cuenta segura.</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+            <div>
+              <label className="lbl">Nueva contraseña</label>
+              <input className="inp" type="password" value={passNueva} onChange={e => setPassNueva(e.target.value)} placeholder="Mínimo 8 caracteres" />
             </div>
-          ))}
+            <div>
+              <label className="lbl">Confirmar contraseña</label>
+              <input className="inp" type="password" value={passConfirm} onChange={e => setPassConfirm(e.target.value)} placeholder="Repite la contraseña" />
+            </div>
+          </div>
+
+          <button className="btn-main" onClick={cambiarPassword} disabled={savingPass || !passNueva || !passConfirm}>
+            {savingPass ? '⏳ Actualizando...' : '🔑 Cambiar contraseña'}
+          </button>
+          {passError && <div className="err">⚠️ {passError}</div>}
+          {passOk    && <div className="ok">✅ Contraseña actualizada correctamente</div>}
         </div>
 
-        {/* IA Card */}
-        <div className="ia-card" style={{ marginBottom: 24 }}>
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00D2FF' }} className="pulse-dot" />
-              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#00D2FF', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Docenly IA · Sugerencia para ti</span>
+        {/* ── 4. ZONA DE PELIGRO ── */}
+        <div className="card" style={{ border: '1.5px solid #fecaca' }}>
+          <p className="card-title" style={{ color: '#dc2626' }}>⚠️ Zona de peligro</p>
+          <p className="card-desc">Estas acciones son permanentes e irreversibles.</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderRadius: 10, background: '#fef2f2', border: '1px solid #fecaca' }}>
+            <div>
+              <p style={{ fontWeight: 600, color: '#dc2626', fontSize: '0.88rem' }}>Eliminar mi cuenta</p>
+              <p style={{ color: '#6B7280', fontSize: '0.78rem', marginTop: 2 }}>Se borrarán todos tus datos permanentemente.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
-              <div>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'white', marginBottom: 8, letterSpacing: '-0.02em' }}>
-                  🤖 Basado en tu actividad reciente…
-                </h3>
-                <p style={{ fontSize: '0.88rem', color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, marginBottom: 14 }}>
-                  {sugerencia.texto}
-                </p>
-                <Link href={sugerencia.href} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, background: 'rgba(0,163,255,0.2)', border: '1px solid rgba(0,163,255,0.35)', color: '#00D2FF', fontWeight: 600, fontSize: '0.82rem', textDecoration: 'none' }}>
-                  {sugerencia.accion} →
-                </Link>
-              </div>
-              <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                <Link href="/dashboard/planeacion/nueva" className="wow-btn">
-                  ⚡ Crear planificación con IA
-                </Link>
-                <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', marginTop: 8 }}>Listo en menos de 60 segundos</p>
-              </div>
+            <button className="btn-danger" onClick={() => setModalDelete(true)}>🗑️ Eliminar cuenta</button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── MODAL PLAN ── */}
+      {modalPlan && (
+        <div className="overlay" onClick={() => setModalPlan(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <h2 style={{ fontWeight: 800, color: '#111827', fontSize: '1.15rem' }}>✨ Elige tu plan</h2>
+              <button onClick={() => setModalPlan(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#9CA3AF' }}>×</button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {planes.filter(p => p.nombre !== 'Gratis').map(p => (
+                <div key={p.nombre} style={{ padding: '16px 20px', borderRadius: 12, border: \`2px solid \${p.popular ? p.color : '#e2e8f0'}\`, background: p.popular ? \`\${p.color}08\` : 'white', position: 'relative' }}>
+                  {p.popular && <span style={{ position: 'absolute', top: -10, right: 16, background: p.color, color: 'white', fontSize: '0.65rem', fontWeight: 700, padding: '2px 10px', borderRadius: 999 }}>MÁS POPULAR</span>}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <p style={{ fontWeight: 700, color: '#111827', fontSize: '0.95rem' }}>{p.nombre}</p>
+                      <p style={{ fontSize: '0.78rem', color: '#6B7280', marginTop: 2 }}>{p.creditos} · {p.features[0]}</p>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ fontWeight: 800, color: p.color, fontSize: '1.2rem', letterSpacing: '-0.03em' }}>{p.precio}</p>
+                      <p style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>{p.periodo}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button className="btn-main" style={{ width: '100%', justifyContent: 'center', marginTop: 20, padding: '12px' }} onClick={() => { setModalPlan(false); router.push('/precios') }}>
+              Ver todos los planes →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL ELIMINAR ── */}
+      {modalDelete && (
+        <div className="overlay" onClick={() => { setModalDelete(false); setConfirmText('') }}>
+          <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>⚠️</div>
+              <h2 style={{ fontWeight: 800, color: '#dc2626', fontSize: '1.1rem', marginBottom: 8 }}>¿Eliminar tu cuenta?</h2>
+              <p style={{ color: '#6B7280', fontSize: '0.85rem', lineHeight: 1.6 }}>Esta acción es permanente. Se eliminarán todos tus datos, planificaciones, evaluaciones y configuraciones.</p>
+            </div>
+            <div className="divider" />
+            <div style={{ marginBottom: 16 }}>
+              <label className="lbl" style={{ color: '#dc2626' }}>Escribe CONFIRMAR para continuar</label>
+              <input className="inp" type="text" value={confirmText} onChange={e => setConfirmText(e.target.value)} placeholder="CONFIRMAR" style={{ borderColor: confirmText === 'CONFIRMAR' ? '#dc2626' : '#e2e8f0', marginTop: 6 }} />
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn-sec" style={{ flex: 1, justifyContent: 'center' }} onClick={() => { setModalDelete(false); setConfirmText('') }}>Cancelar</button>
+              <button
+                onClick={eliminarCuenta}
+                disabled={confirmText !== 'CONFIRMAR' || deleting}
+                style={{ flex: 1, padding: '10px 20px', background: confirmText === 'CONFIRMAR' ? '#dc2626' : '#f3f4f6', color: confirmText === 'CONFIRMAR' ? 'white' : '#9CA3AF', fontWeight: 600, fontSize: '0.85rem', border: 'none', borderRadius: 8, cursor: confirmText === 'CONFIRMAR' ? 'pointer' : 'not-allowed', fontFamily: 'inherit', transition: 'all 0.2s' }}
+              >
+                {deleting ? 'Eliminando...' : '🗑️ Eliminar cuenta'}
+              </button>
             </div>
           </div>
         </div>
-
-        {/* Acciones rápidas */}
-        <div style={{ marginBottom: 24 }}>
-          <p style={{ fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.09em', color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 12 }}>Acciones rápidas</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
-            {accionesRapidas.map(a => (
-              <Link key={a.href} href={a.href} className="accion-card" style={{ background: a.color }}>
-                {a.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Banner rotativo */}
-        <div style={{ marginBottom: 24 }}>
-          <BannerRotativo isPro={isPro} />
-        </div>
-
-        {/* Tip del día */}
-        <div className="tip-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <span style={{ fontSize: '1.2rem' }}>{tipHoy.icono}</span>
-            <p style={{ fontSize: '0.68rem', fontWeight: 700, color: '#00A3FF', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{tipHoy.titulo}</p>
-          </div>
-          <p style={{ fontSize: '0.9rem', color: '#4B5563', lineHeight: 1.75, fontWeight: 400 }}>{tipHoy.texto}</p>
-        </div>
-
-      </main>
+      )}
     </div>
   )
 }`
 
-fs.writeFileSync('./app/dashboard/page.tsx', content, 'utf8')
-console.log('✅ Dashboard actualizado!')
+fs.writeFileSync('./app/configuracion/page.tsx', content, 'utf8')
+console.log('✅ Configuración creada!')

@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import BannerRotativo from '@/components/BannerRotativo'
-import { signOut } from '@/lib/auth/actions'
 
 const tipsEducativos = [
   { icono: '💡', titulo: 'Tip del día', texto: 'La evaluación formativa continua mejora el aprendizaje hasta un 40% más que la evaluación sumativa tradicional.' },
@@ -36,26 +35,19 @@ export default async function DashboardPage() {
     .eq('id', user?.id)
     .single()
 
-  const { count: clasesCount }       = await supabase.from('planificaciones').select('*', { count: 'exact', head: true }).eq('user_id', user?.id)
-  const { count: estudiantesCount }  = await supabase.from('estudiantes').select('*', { count: 'exact', head: true }).eq('user_id', user?.id)
-  const { count: evaluacionesCount } = await supabase.from('calificaciones').select('*', { count: 'exact', head: true }).eq('estudiante_id', user?.id)
-  const { count: promptsCount }      = await supabase.from('prompts').select('*', { count: 'exact', head: true }).eq('user_id', user?.id)
-  const { count: pendientesCount }   = await supabase.from('planificaciones').select('*', { count: 'exact', head: true }).eq('user_id', user?.id).eq('estado', 'pendiente')
-  const { count: sinCalificarCount } = await supabase.from('calificaciones').select('*', { count: 'exact', head: true }).eq('user_id', user?.id).eq('calificado', false)
-
-  const nombre    = profile?.nombre || 'Docente'
-  const plan      = profile?.plan   || 'free'
-  const isPro     = plan === 'pro'
-  const hora      = new Date().getHours()
-  const saludo    = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches'
-  const tipHoy    = tipsEducativos[new Date().getDay() % tipsEducativos.length]
+  const nombre     = profile?.nombre || user?.user_metadata?.nombre || user?.email?.split('@')[0] || 'Docente'
+  const plan       = profile?.plan   || 'free'
+  const isPro      = plan === 'pro'
+  const hora       = new Date().getHours()
+  const saludo     = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches'
+  const tipHoy     = tipsEducativos[new Date().getDay() % tipsEducativos.length]
   const sugerencia = sugerenciasIA[new Date().getDay() % sugerenciasIA.length]
 
   const stats = [
-    { label: 'Planificaciones', valor: clasesCount      || 0, sub: `${pendientesCount || 0} pendientes`,  color: '#00A3FF', alerta: (pendientesCount || 0) > 0 },
-    { label: 'Estudiantes',     valor: estudiantesCount  || 0, sub: 'registrados',                         color: '#1A2B56', alerta: false },
-    { label: 'Sin calificar',   valor: sinCalificarCount || 0, sub: 'evaluaciones pendientes',              color: '#8E2DE2', alerta: (sinCalificarCount || 0) > 0 },
-    { label: 'Prompts usados',  valor: promptsCount      || 0, sub: 'generados con IA',                     color: '#00D2FF', alerta: false },
+    { label: 'Planificaciones', valor: 12, sub: '3 pendientes',            color: '#00A3FF', alerta: true  },
+    { label: 'Estudiantes',     valor: 34, sub: 'registrados',             color: '#1A2B56', alerta: false },
+    { label: 'Sin calificar',   valor: 8,  sub: 'evaluaciones pendientes', color: '#8E2DE2', alerta: true  },
+    { label: 'Prompts usados',  valor: 27, sub: 'generados con IA',        color: '#00D2FF', alerta: false },
   ]
 
   return (
@@ -83,7 +75,9 @@ export default async function DashboardPage() {
           <h1 style={{ fontSize: '1.45rem', fontWeight: 700, color: '#111827', letterSpacing: '-0.025em', marginBottom: 4 }}>
             {saludo}, {nombre.split(' ')[0]} 👋
           </h1>
-          <p style={{ fontSize: '0.85rem', color: '#6B7280', fontWeight: 400 }}>Aquí tienes un resumen de tu actividad en Docenly</p>
+          <p style={{ fontSize: '0.85rem', color: '#6B7280', fontWeight: 400 }}>
+            Aquí tienes un resumen de tu actividad en Docenly
+          </p>
         </div>
         {!isPro && (
           <Link href="/precios" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, background: 'linear-gradient(135deg,#00A3FF,#8E2DE2)', color: 'white', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none', boxShadow: '0 2px 12px rgba(0,163,255,0.25)' }}>

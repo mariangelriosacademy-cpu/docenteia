@@ -42,7 +42,7 @@ const navGroups = [
     grupo: 'Mi cuenta',
     items: [
       { label: 'Mi Perfil',     href: '/dashboard/perfil',        icono: '◯', subs: [] },
-      { label: 'Configuración', href: '/dashboard/configuracion', icono: '◎', subs: [] },
+      { label: 'Configuración', href: '/configuracion',           icono: '◎', subs: [] },
     ]
   },
 ]
@@ -51,6 +51,7 @@ interface Props {
   nombre: string
   plan: string
   iniciales: string
+  avatarUrl?: string | null
   signOutAction: () => Promise<void>
 }
 
@@ -169,7 +170,7 @@ function NavItem({ item }: { item: typeof navGroups[0]['items'][0] }) {
   )
 }
 
-export default function Sidebar({ nombre, plan, iniciales, signOutAction }: Props) {
+export default function Sidebar({ nombre, plan, iniciales, avatarUrl, signOutAction }: Props) {
   const isPro = plan === 'pro'
 
   return (
@@ -179,7 +180,7 @@ export default function Sidebar({ nombre, plan, iniciales, signOutAction }: Prop
         .nav-grupo { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: rgba(255,255,255,0.22); padding: 16px 14px 5px; text-transform: uppercase; }
         .signout-btn { display: flex; align-items: center; gap: 9px; padding: 6px 12px; border-radius: 4px; font-size: 13px; color: rgba(255,255,255,0.35); background: transparent; border: none; cursor: pointer; width: 100%; transition: all 0.15s; font-family: inherit; }
         .signout-btn:hover { color: #ff8080; background: rgba(255,60,60,0.08); }
-      `}</style>
+      `}</style>h: 
 
       <aside style={{
         width: 224, position: 'fixed', height: '100vh', zIndex: 20,
@@ -189,16 +190,32 @@ export default function Sidebar({ nombre, plan, iniciales, signOutAction }: Prop
 
         {/* Logo */}
         <div style={{ padding: '8px 12px 6px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Image src="/logo.png" alt="Docenly" width={180} height={56}
+          <Image src="/logo.png" alt="DocenteIA" width={180} height={56}
             style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
         </div>
 
         {/* Perfil */}
         <div style={{ padding: '3px 12px 4px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          <Link href="/dashboard/perfil" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', marginBottom: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#00A3FF,#8E2DE2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'white', flexShrink: 0 }}>
-              {iniciales}
-            </div>
+          <Link href="/configuracion" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', marginBottom: 8 }}>
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={iniciales}
+                style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid rgba(255,255,255,0.15)' }}
+              />
+            ) : (
+              <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, overflow: 'hidden', background: 'linear-gradient(135deg,#00A3FF,#8E2DE2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+  {avatarUrl ? (
+    <img
+      src={avatarUrl}
+      alt={nombre}
+      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+    />
+  ) : (
+    <span style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>{iniciales}</span>
+  )}
+</div>
+            )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ color: 'white', fontSize: 13, fontWeight: 600, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nombre}</p>
               <span style={{ fontSize: 9.5, fontWeight: 600, padding: '1px 6px', borderRadius: 999, background: isPro ? 'rgba(0,163,255,0.2)' : 'rgba(255,255,255,0.07)', color: isPro ? '#00D2FF' : 'rgba(255,255,255,0.35)', letterSpacing: '0.05em' }}>
