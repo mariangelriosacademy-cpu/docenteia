@@ -17,8 +17,7 @@ const navGroups = [
         subs: [{ label: 'Correos', href: '/dashboard/oficina/correos' }, { label: 'Comunicados', href: '/dashboard/oficina/comunicados' }, { label: 'Plantillas', href: '/dashboard/oficina/plantillas' }, { label: 'Asistencias', href: '/dashboard/oficina/asistencias' }, { label: 'Calificaciones', href: '/dashboard/oficina/calificaciones' }] },
       { label: 'Mis Clases', href: '/dashboard/clases', icono: '⊟',
         subs: [{ label: 'Asignaturas/Niveles', href: '/dashboard/clases/asignaturas' }, { label: 'Actividades', href: '/dashboard/clases/actividades' }, { label: 'Instrumentos', href: '/dashboard/clases/instrumentos' }] },
-      { label: 'Planeación', href: '/dashboard/planeacion', icono: '⊡',
-        subs: [{ label: 'Diaria', href: '/dashboard/planeacion/diaria' }, { label: 'Semanal', href: '/dashboard/planeacion/semanal' }, { label: 'Mensual', href: '/dashboard/planeacion/mensual' }, { label: 'Anual', href: '/dashboard/planeacion/anual' }] },
+      { label: 'Planeación', href: '/dashboard/planeacion', icono: '⊡', subs: [] },
       { label: 'Evaluaciones', href: '/dashboard/evaluaciones', icono: '◎',
         subs: [{ label: 'Seguimiento', href: '/dashboard/evaluaciones/seguimiento' }, { label: 'Corrección', href: '/dashboard/evaluaciones/correccion' }, { label: 'Automatización', href: '/dashboard/evaluaciones/automatizacion' }] },
       { label: 'Retroalimentación', href: '/dashboard/retroalimentacion', icono: '◉',
@@ -36,6 +35,12 @@ const navGroups = [
         subs: [{ label: 'Generador', href: '/dashboard/prompts/generador' }, { label: 'Mis prompts', href: '/dashboard/prompts/mis-prompts' }] },
       { label: 'Mi Aprendizaje', href: '/dashboard/aprendizaje', icono: '◍',
         subs: [{ label: 'Cursos', href: '/dashboard/aprendizaje/cursos' }, { label: 'Tutoriales', href: '/dashboard/aprendizaje/tutoriales' }] },
+    ]
+  },
+  {
+    grupo: 'Herramientas',
+    items: [
+      { label: 'Diagnóstico de Aula', href: '/dashboard/diagnostico', icono: '🔍', subs: [] },
     ]
   },
   {
@@ -180,7 +185,7 @@ export default function Sidebar({ nombre, plan, iniciales, avatarUrl, signOutAct
         .nav-grupo { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: rgba(255,255,255,0.22); padding: 16px 14px 5px; text-transform: uppercase; }
         .signout-btn { display: flex; align-items: center; gap: 9px; padding: 6px 12px; border-radius: 4px; font-size: 13px; color: rgba(255,255,255,0.35); background: transparent; border: none; cursor: pointer; width: 100%; transition: all 0.15s; font-family: inherit; }
         .signout-btn:hover { color: #ff8080; background: rgba(255,60,60,0.08); }
-      `}</style>h: 
+      `}</style>
 
       <aside style={{
         width: 224, position: 'fixed', height: '100vh', zIndex: 20,
@@ -204,17 +209,9 @@ export default function Sidebar({ nombre, plan, iniciales, avatarUrl, signOutAct
                 style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid rgba(255,255,255,0.15)' }}
               />
             ) : (
-              <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, overflow: 'hidden', background: 'linear-gradient(135deg,#00A3FF,#8E2DE2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-  {avatarUrl ? (
-    <img
-      src={avatarUrl}
-      alt={nombre}
-      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-    />
-  ) : (
-    <span style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>{iniciales}</span>
-  )}
-</div>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#00A3FF,#8E2DE2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'white', flexShrink: 0 }}>
+                {iniciales}
+              </div>
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ color: 'white', fontSize: 13, fontWeight: 600, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nombre}</p>
