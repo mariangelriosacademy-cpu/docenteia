@@ -1,355 +1,485 @@
 const fs = require('fs')
+const path = require('path')
 
-const dir = './app/dashboard/planeacion/diaria'
-if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-
-const content = `'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-
-const materias = ['Matemáticas','Lengua y Literatura','Ciencias Naturales','Historia','Geografía','Arte','Educación Física','Inglés','Tecnología','Otra']
-const grados = ['Preescolar','Primaria 1°','Primaria 2°','Primaria 3°','Primaria 4°','Primaria 5°','Primaria 6°','Secundaria 1°','Secundaria 2°','Secundaria 3°','Secundaria 4°','Secundaria 5°','Secundaria 6°','Bachillerato 1°','Bachillerato 2°','Bachillerato 3°','Universidad']
-const duraciones = ['30 minutos','45 minutos','60 minutos','90 minutos','120 minutos']
-const metodologias = ['Tradicional','Constructivista','Aprendizaje Basado en Proyectos','Gamificación','Aula Invertida','Montessori','Colaborativo']
-const evaluaciones = ['Formativa','Sumativa','Mixta','Sin evaluación formal']
-const recursosOpts = ['Proyector','Computadores','Tablets','Solo tablero','Material impreso','Videos','Laboratorio']
-const momentos = ['Inicio de unidad','Desarrollo de unidad','Cierre de unidad','Repaso','Evaluación']
-
-type Datos = {
-  fecha: string
-  materia: string
-  grado: string
-  tema: string
-  momento: string
-  objetivo: string
-  duracion: string
-  numEstudiantes: string
-  inicio: string
-  desarrollo: string
-  cierre: string
-  metodologia: string
-  tipoEvaluacion: string
-  recursos: string[]
-  observaciones: string
-}
-
-const inicial: Datos = {
-  fecha: new Date().toISOString().split('T')[0],
-  materia: '', grado: '', tema: '', momento: '',
-  objetivo: '', duracion: '', numEstudiantes: '',
-  inicio: '', desarrollo: '', cierre: '',
-  metodologia: '', tipoEvaluacion: '',
-  recursos: [], observaciones: '',
-}
-
-const pasos = [
-  { num: 1, titulo: 'Clase',      icono: '📚' },
-  { num: 2, titulo: 'Desarrollo', icono: '🧩' },
-  { num: 3, titulo: 'Evaluación', icono: '📝' },
+// Crear carpetas
+const dirs = [
+  './app/api/generate-planificacion',
+  './components',
 ]
+dirs.forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }) })
 
-export default function PlaneacionDiariaPage() {
-  const router = useRouter()
-  const [paso, setPaso]       = useState(1)
-  const [datos, setDatos]     = useState<Datos>(inicial)
-  const [errores, setErrores] = useState<string[]>([])
-  const [loading, setLoading] = useState(false)
+// ── ARCHIVO 1: endpoint ──
+const endpoint = `import { NextRequest, NextResponse } from 'next/server'
+import Anthropic from '@anthropic-ai/sdk'
+import { createClient } from '@/lib/supabase/server'
 
-  function set(field: keyof Datos, value: string) {
-    setDatos(prev => ({ ...prev, [field]: value }))
-    setErrores([])
-  }
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+})
 
-  function toggleRecurso(r: string) {
-    setDatos(prev => ({
-      ...prev,
-      recursos: prev.recursos.includes(r)
-        ? prev.recursos.filter(x => x !== r)
-        : [...prev.recursos, r]
-    }))
-  }
+const SYSTEM_PROMPT = \`Eres un experto pedagógico hispanohablante con más de 20 años de experiencia en educación preescolar, primaria, secundaria y bachillerato. Dominas metodologías modernas como:
+- Aprendizaje Basado en Proyectos (ABP)
+- Constructivismo
+- Gamificación educativa
+- Aula invertida (Flipped Classroom)
+- Aprendizaje colaborativo
+- Montessori
 
-  function validar(): boolean {
-    const errs: string[] = []
-    if (paso === 1) {
-      if (!datos.fecha)        errs.push('Selecciona la fecha de la clase')
-      if (!datos.materia)      errs.push('Selecciona una materia')
-      if (!datos.grado)        errs.push('Selecciona el grado')
-      if (!datos.tema.trim())  errs.push('Escribe el tema de la clase')
-      if (!datos.duracion)     errs.push('Selecciona la duración')
+Tu especialidad es crear planificaciones de clase detalladas, prácticas y adaptadas al contexto latinoamericano y español. Siempre consideras:
+- Los diferentes estilos de aprendizaje (visual, auditivo, kinestésico)
+- La diversidad en el aula
+- El tiempo disponible para cada actividad
+- Los recursos reales disponibles en el aula
+- Los estándares curriculares vigentes
+
+IMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, sin explicaciones. Solo el JSON.\`
+
+function buildPrompt(data: any): string {
+  return \`Crea una planificación de clase completa con estos datos:
+
+MATERIA: \${data.materia}
+GRADO/NIVEL: \${data.grado}
+TEMA ESPECÍFICO: \${data.tema}
+OBJETIVO DE APRENDIZAJE: \${data.objetivo}
+DURACIÓN: \${data.duracion}
+NÚMERO DE ESTUDIANTES: \${data.numEstudiantes}
+METODOLOGÍA: \${data.metodologia}
+TIPO DE EVALUACIÓN: \${data.tipoEvaluacion}
+RECURSOS DISPONIBLES: \${data.recursos?.join(', ') || 'No especificados'}
+MOMENTO DE LA UNIDAD: \${data.momento || 'No especificado'}
+OBSERVACIONES: \${data.observaciones || 'Ninguna'}
+
+Responde ÚNICAMENTE con este JSON (sin markdown, sin texto extra):
+{
+  "titulo": "Título descriptivo de la clase",
+  "objetivo_especifico": "Objetivo redactado con verbo de acción observable",
+  "competencias": ["Competencia 1", "Competencia 2", "Competencia 3"],
+  "actividades_inicio": [
+    {
+      "titulo": "Nombre de la actividad",
+      "descripcion": "Descripción detallada paso a paso",
+      "duracion_min": 10,
+      "tipo": "motivacion"
     }
-    if (paso === 2) {
-      if (!datos.objetivo.trim())   errs.push('Escribe el objetivo de aprendizaje')
-      if (!datos.inicio.trim())     errs.push('Describe el momento de inicio')
-      if (!datos.desarrollo.trim()) errs.push('Describe el desarrollo de la clase')
-      if (!datos.cierre.trim())     errs.push('Describe el cierre de la clase')
+  ],
+  "actividades_desarrollo": [
+    {
+      "titulo": "Nombre de la actividad",
+      "descripcion": "Descripción detallada paso a paso",
+      "duracion_min": 25,
+      "recurso": "Recurso necesario",
+      "tipo": "explicacion"
     }
-    if (paso === 3) {
-      if (!datos.metodologia)    errs.push('Selecciona una metodología')
-      if (!datos.tipoEvaluacion) errs.push('Selecciona el tipo de evaluación')
+  ],
+  "actividades_cierre": [
+    {
+      "titulo": "Nombre de la actividad",
+      "descripcion": "Descripción detallada",
+      "duracion_min": 10,
+      "tipo": "evaluacion"
     }
-    setErrores(errs)
-    return errs.length === 0
+  ],
+  "recursos_necesarios": ["Recurso 1", "Recurso 2"],
+  "criterios_evaluacion": [
+    {
+      "criterio": "Descripción del criterio",
+      "indicador": "Cómo se evidencia",
+      "porcentaje": 100
+    }
+  ],
+  "tarea_para_casa": "Descripción de la tarea o null si no aplica",
+  "notas_docente": "Sugerencias importantes para el docente",
+  "duracion_total_min": 45
+}\`
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. Verificar autenticación
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
+    // 2. Verificar API key
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return NextResponse.json(
+        { error: 'API key no configurada. Agrega ANTHROPIC_API_KEY en .env.local' },
+        { status: 500 }
+      )
+    }
+
+    // 3. Obtener y validar datos
+    const data = await req.json()
+    const camposRequeridos = ['materia', 'grado', 'tema', 'objetivo', 'duracion', 'metodologia', 'tipoEvaluacion']
+    const faltantes = camposRequeridos.filter(c => !data[c])
+    if (faltantes.length > 0) {
+      return NextResponse.json(
+        { error: \`Faltan campos requeridos: \${faltantes.join(', ')}\` },
+        { status: 400 }
+      )
+    }
+
+    // 4. Verificar créditos del usuario
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('creditos, plan')
+      .eq('id', user.id)
+      .single()
+
+    const creditos = profile?.creditos ?? 0
+    const plan = profile?.plan ?? 'free'
+    const costoGeneracion = 5 // créditos por planificación
+
+    if (plan === 'free' && creditos < costoGeneracion) {
+      return NextResponse.json(
+        { error: 'Créditos insuficientes. Mejora tu plan para continuar.' },
+        { status: 402 }
+      )
+    }
+
+    // 5. Streaming con Claude
+    const encoder = new TextEncoder()
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          const response = await client.messages.create({
+            model: 'claude-opus-4-6',
+            max_tokens: 2000,
+            system: SYSTEM_PROMPT,
+            messages: [{ role: 'user', content: buildPrompt(data) }],
+            stream: true,
+          })
+
+          let fullText = ''
+
+          for await (const event of response) {
+            if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+              fullText += event.delta.text
+              controller.enqueue(encoder.encode(event.delta.text))
+            }
+          }
+
+          // 6. Descontar créditos
+          await supabase
+            .from('profiles')
+            .update({ creditos: Math.max(0, creditos - costoGeneracion) })
+            .eq('id', user.id)
+
+          // 7. Guardar en historial
+          try {
+            const parsed = JSON.parse(fullText)
+            await supabase.from('planificaciones').insert({
+              user_id: user.id,
+              tipo: data.tipo || 'diaria',
+              materia: data.materia,
+              grado: data.grado,
+              tema: data.tema,
+              contenido: parsed,
+              estado: 'borrador',
+            })
+          } catch (_) {
+            // Si no se puede parsear o guardar, no es crítico
+          }
+
+          controller.close()
+        } catch (err: any) {
+          const errorMsg = JSON.stringify({ error: err.message || 'Error al generar' })
+          controller.enqueue(encoder.encode(errorMsg))
+          controller.close()
+        }
+      }
+    })
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    })
+
+  } catch (err: any) {
+    console.error('Error en generate-planificacion:', err)
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    )
   }
+}
+`
 
-  function siguiente() { if (validar()) setPaso(p => Math.min(p + 1, 3)) }
-  function anterior()  { setErrores([]); setPaso(p => Math.max(p - 1, 1)) }
+// ── ARCHIVO 2: componente resultado ──
+const resultado = `'use client'
+import { useState } from 'react'
 
-  async function generar() {
-    if (!validar()) return
-    setLoading(true)
-    await new Promise(r => setTimeout(r, 1500))
-    setLoading(false)
-    router.push('/dashboard/planeacion')
+interface Actividad {
+  titulo: string
+  descripcion: string
+  duracion_min: number
+  recurso?: string
+  tipo?: string
+}
+
+interface CriterioEval {
+  criterio: string
+  indicador: string
+  porcentaje: number
+}
+
+interface PlanData {
+  titulo: string
+  objetivo_especifico: string
+  competencias: string[]
+  actividades_inicio: Actividad[]
+  actividades_desarrollo: Actividad[]
+  actividades_cierre: Actividad[]
+  recursos_necesarios: string[]
+  criterios_evaluacion: CriterioEval[]
+  tarea_para_casa: string | null
+  notas_docente: string
+  duracion_total_min: number
+}
+
+interface Props {
+  plan: PlanData
+  meta: { materia: string; grado: string; duracion: string }
+  onGuardar: () => void
+  onRegenerar: () => void
+  onExportar: () => void
+  guardando?: boolean
+}
+
+function Acordeon({ titulo, color, icono, children, defaultOpen = false }: {
+  titulo: string; color: string; icono: string; children: React.ReactNode; defaultOpen?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div style={{ border: \`1.5px solid \${color}30\`, borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
+      <button onClick={() => setOpen(!open)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: \`\${color}10\`, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, color: '#111827', fontSize: '0.92rem' }}>
+          <span>{icono}</span>{titulo}
+        </span>
+        <span style={{ color: color, fontWeight: 700, fontSize: '1.1rem', transition: 'transform 0.2s', display: 'inline-block', transform: open ? 'rotate(180deg)' : 'none' }}>▾</span>
+      </button>
+      {open && <div style={{ padding: '16px 18px', borderTop: \`1px solid \${color}20\` }}>{children}</div>}
+    </div>
+  )
+}
+
+function ActividadCard({ act, color }: { act: Actividad; color: string }) {
+  const [copiado, setCopiado] = useState(false)
+
+  function copiar() {
+    navigator.clipboard.writeText(\`\${act.titulo}\\n\${act.descripcion}\`)
+    setCopiado(true)
+    setTimeout(() => setCopiado(false), 2000)
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8F9FA', fontFamily: "'Inter', sans-serif", paddingBottom: 60 }}>
-      <style>{\`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        * { box-sizing: border-box; }
-        .lbl { display: block; font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 6px; }
-        .inp { width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0; border-radius: 9px; font-size: 0.9rem; font-family: inherit; color: #111827; background: white; outline: none; transition: all 0.2s; }
-        .inp:focus { border-color: #00A3FF; box-shadow: 0 0 0 3px rgba(0,163,255,0.08); }
-        .inp-sel { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
-        .chip { display: inline-flex; align-items: center; padding: 6px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.15s; border: 1.5px solid #e2e8f0; background: white; color: #4B5563; margin: 3px; }
-        .chip.on { background: rgba(0,163,255,0.1); border-color: #00A3FF; color: #00A3FF; font-weight: 600; }
-        .chip:hover { border-color: #00A3FF; }
-        .btn-main { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 28px; background: linear-gradient(135deg,#00A3FF,#8E2DE2); color: white; font-weight: 700; font-size: 0.9rem; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; transition: all 0.2s; box-shadow: 0 4px 16px rgba(0,163,255,0.25); }
-        .btn-main:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
-        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .btn-sec { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: white; color: #374151; font-weight: 600; font-size: 0.9rem; border: 1.5px solid #d1d5db; border-radius: 10px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
-        .btn-sec:hover { border-color: #00A3FF; color: #00A3FF; }
-        .err-box { display: flex; align-items: flex-start; gap: 8px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 0.83rem; margin-top: 16px; }
-        .campo { margin-bottom: 18px; }
-        .step-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 700; transition: all 0.3s; flex-shrink: 0; }
-        .done   { background: linear-gradient(135deg,#00A3FF,#8E2DE2); color: white; }
-        .active { background: white; border: 2px solid #00A3FF; color: #00A3FF; box-shadow: 0 0 0 4px rgba(0,163,255,0.1); }
-        .next   { background: #f3f4f6; border: 2px solid #e2e8f0; color: #9CA3AF; }
-        .momento-btn { flex: 1; padding: 10px 8px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s; border: 1.5px solid #e2e8f0; background: white; color: #4B5563; text-align: center; font-family: inherit; }
-        .momento-btn.on { background: rgba(0,163,255,0.1); border-color: #00A3FF; color: #00A3FF; }
-        .momento-btn:hover { border-color: #00A3FF; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      \`}</style>
+    <div style={{ background: 'white', border: '1px solid #e8edf5', borderRadius: 10, padding: '14px 16px', marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: \`\${color}15\`, color }}>{act.duracion_min} min</span>
+          <span style={{ fontWeight: 700, color: '#111827', fontSize: '0.88rem' }}>{act.titulo}</span>
+        </div>
+        <button onClick={copiar} style={{ fontSize: '0.72rem', fontWeight: 600, color: copiado ? '#16a34a' : '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit' }}>
+          {copiado ? '✅ Copiado' : '📋 Copiar'}
+        </button>
+      </div>
+      <p style={{ fontSize: '0.85rem', color: '#4B5563', lineHeight: 1.7 }}>{act.descripcion}</p>
+      {act.recurso && (
+        <p style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: 6 }}>📦 Recurso: {act.recurso}</p>
+      )}
+    </div>
+  )
+}
 
-      {/* Top bar */}
-      <div style={{ background: 'white', borderBottom: '1px solid #e8edf5', padding: '14px 32px', display: 'flex', alignItems: 'center', gap: 14, position: 'sticky', top: 0, zIndex: 10 }}>
-        <Link href="/dashboard/planeacion" style={{ color: '#6B7280', textDecoration: 'none', fontSize: '0.82rem', fontWeight: 500 }}>← Planeación</Link>
-        <span style={{ color: '#e2e8f0' }}>|</span>
-        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#111827' }}>📅 Planificación Diaria con IA</span>
-        <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: 'rgba(0,163,255,0.1)', color: '#00A3FF' }}>Plan del día</span>
+export default function PlanificacionResultado({ plan, meta, onGuardar, onRegenerar, onExportar, guardando }: Props) {
+  return (
+    <div style={{ fontFamily: "'Inter', sans-serif", paddingBottom: 100 }}>
+      <style>{\`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');\`}</style>
+
+      {/* Header */}
+      <div style={{ background: 'linear-gradient(135deg, #0d0a2e, #1A2B56)', borderRadius: 14, padding: '24px 28px', marginBottom: 20, color: 'white' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+          <div>
+            <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#00D2FF', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>✅ Planificación generada con IA</p>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'white', marginBottom: 12, letterSpacing: '-0.02em', lineHeight: 1.3 }}>{plan.titulo}</h2>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {[meta.materia, meta.grado, meta.duracion, \`\${plan.duracion_total_min} min total\`].map(t => (
+                <span key={t} style={{ fontSize: '0.75rem', fontWeight: 600, padding: '4px 12px', borderRadius: 999, background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.85)' }}>{t}</span>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div style={{ maxWidth: 700, margin: '28px auto', padding: '0 20px' }}>
+      {/* Objetivo */}
+      <div style={{ background: 'rgba(0,210,255,0.06)', border: '1.5px solid rgba(0,210,255,0.2)', borderRadius: 12, padding: '18px 22px', marginBottom: 20 }}>
+        <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#00A3FF', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>🎯 Objetivo específico</p>
+        <p style={{ fontSize: '0.95rem', color: '#111827', lineHeight: 1.7, fontWeight: 500 }}>{plan.objetivo_especifico}</p>
+      </div>
 
-        {/* Pasos */}
-        <div style={{ background: 'white', borderRadius: 14, border: '1px solid #e8edf5', padding: '22px 28px', marginBottom: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            {pasos.map((p, i) => (
-              <div key={p.num} style={{ display: 'flex', alignItems: 'center', flex: i < pasos.length - 1 ? 1 : 0 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                  <div className={\`step-circle \${paso > p.num ? 'done' : paso === p.num ? 'active' : 'next'}\`}>
-                    {paso > p.num ? '✓' : p.icono}
-                  </div>
-                  <span style={{ fontSize: '0.7rem', fontWeight: paso === p.num ? 700 : 500, color: paso === p.num ? '#00A3FF' : paso > p.num ? '#111827' : '#9CA3AF', whiteSpace: 'nowrap' }}>{p.titulo}</span>
-                </div>
-                {i < pasos.length - 1 && (
-                  <div style={{ flex: 1, height: 2, background: paso > p.num ? 'linear-gradient(90deg,#00A3FF,#8E2DE2)' : '#e2e8f0', margin: '0 10px', marginBottom: 20, borderRadius: 999, transition: 'background 0.3s' }} />
-                )}
-              </div>
+      {/* Competencias */}
+      {plan.competencias?.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6B7280', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>🏆 Competencias</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {plan.competencias.map((c, i) => (
+              <span key={i} style={{ fontSize: '0.8rem', fontWeight: 600, padding: '6px 14px', borderRadius: 999, background: ['rgba(0,163,255,0.1)','rgba(142,45,226,0.1)','rgba(0,134,138,0.1)','rgba(245,158,11,0.1)'][i % 4], color: ['#00A3FF','#8E2DE2','#00868a','#d97706'][i % 4] }}>{c}</span>
             ))}
           </div>
-          <div style={{ marginTop: 16, background: '#f3f4f6', borderRadius: 999, height: 5 }}>
-            <div style={{ width: paso === 1 ? '10%' : paso === 2 ? '55%' : '100%', height: '100%', background: 'linear-gradient(90deg,#00A3FF,#8E2DE2)', borderRadius: 999, transition: 'width 0.4s ease' }} />
-          </div>
-          <p style={{ fontSize: '0.72rem', color: '#9CA3AF', marginTop: 6, textAlign: 'right' }}>Paso {paso} de 3</p>
         </div>
+      )}
 
-        {/* Form */}
-        <div style={{ background: 'white', borderRadius: 14, border: '1px solid #e8edf5', padding: '28px 32px', marginBottom: 20 }}>
+      {/* Actividades */}
+      <Acordeon titulo="Actividades de Inicio" color="#16a34a" icono="🟢" defaultOpen={true}>
+        {plan.actividades_inicio?.map((a, i) => <ActividadCard key={i} act={a} color="#16a34a" />)}
+      </Acordeon>
 
-          {/* PASO 1 */}
-          {paso === 1 && (
-            <div>
-              <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#111827', marginBottom: 4 }}>📚 Información de la clase</h2>
-              <p style={{ fontSize: '0.82rem', color: '#6B7280', marginBottom: 22 }}>Define los datos básicos de tu clase de hoy.</p>
+      <Acordeon titulo="Actividades de Desarrollo" color="#00A3FF" icono="🔵" defaultOpen={true}>
+        {plan.actividades_desarrollo?.map((a, i) => <ActividadCard key={i} act={a} color="#00A3FF" />)}
+      </Acordeon>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div className="campo">
-                  <label className="lbl">Fecha de la clase *</label>
-                  <input className="inp" type="date" value={datos.fecha} onChange={e => set('fecha', e.target.value)} />
-                </div>
-                <div className="campo">
-                  <label className="lbl">Duración *</label>
-                  <select className="inp inp-sel" value={datos.duracion} onChange={e => set('duracion', e.target.value)}>
-                    <option value="">Selecciona</option>
-                    {duraciones.map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-              </div>
+      <Acordeon titulo="Actividades de Cierre" color="#8E2DE2" icono="🔴" defaultOpen={true}>
+        {plan.actividades_cierre?.map((a, i) => <ActividadCard key={i} act={a} color="#8E2DE2" />)}
+      </Acordeon>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div className="campo">
-                  <label className="lbl">Materia *</label>
-                  <select className="inp inp-sel" value={datos.materia} onChange={e => set('materia', e.target.value)}>
-                    <option value="">Selecciona</option>
-                    {materias.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                </div>
-                <div className="campo">
-                  <label className="lbl">Grado / Nivel *</label>
-                  <select className="inp inp-sel" value={datos.grado} onChange={e => set('grado', e.target.value)}>
-                    <option value="">Selecciona</option>
-                    {grados.map(g => <option key={g} value={g}>{g}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="campo">
-                <label className="lbl">Tema de la clase *</label>
-                <input className="inp" type="text" value={datos.tema} onChange={e => set('tema', e.target.value)} placeholder="Ej: Fracciones equivalentes, La célula, La Revolución Francesa..." />
-              </div>
-
-              <div className="campo">
-                <label className="lbl">Momento de la unidad</label>
-                <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-                  {momentos.map(m => (
-                    <button key={m} className={\`momento-btn \${datos.momento === m ? 'on' : ''}\`} onClick={() => set('momento', m)}>{m}</button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="campo">
-                <label className="lbl">Número de estudiantes</label>
-                <select className="inp inp-sel" value={datos.numEstudiantes} onChange={e => set('numEstudiantes', e.target.value)}>
-                  <option value="">Selecciona</option>
-                  <option value="1-10">1 - 10</option>
-                  <option value="11-20">11 - 20</option>
-                  <option value="21-30">21 - 30</option>
-                  <option value="más de 30">Más de 30</option>
-                </select>
-              </div>
-            </div>
-          )}
-
-          {/* PASO 2 */}
-          {paso === 2 && (
-            <div>
-              <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#111827', marginBottom: 4 }}>🧩 Estructura de la clase</h2>
-              <p style={{ fontSize: '0.82rem', color: '#6B7280', marginBottom: 22 }}>Define los 3 momentos clave de tu clase.</p>
-
-              <div className="campo">
-                <label className="lbl">Objetivo de aprendizaje *</label>
-                <textarea className="inp" value={datos.objetivo} onChange={e => set('objetivo', e.target.value)} placeholder="El estudiante será capaz de..." rows={3} style={{ resize: 'vertical', lineHeight: 1.6 }} />
-              </div>
-
-              <div className="campo">
-                <label className="lbl">🟢 Inicio / Motivación * <span style={{ color: '#9CA3AF', fontWeight: 400 }}>(¿cómo captarás la atención?)</span></label>
-                <textarea className="inp" value={datos.inicio} onChange={e => set('inicio', e.target.value)} placeholder="Ej: Pregunta generadora, video corto, experimento demostrativo, lluvia de ideas..." rows={3} style={{ resize: 'vertical', lineHeight: 1.6 }} />
-              </div>
-
-              <div className="campo">
-                <label className="lbl">🔵 Desarrollo * <span style={{ color: '#9CA3AF', fontWeight: 400 }}>(actividades principales)</span></label>
-                <textarea className="inp" value={datos.desarrollo} onChange={e => set('desarrollo', e.target.value)} placeholder="Ej: Explicación del concepto, trabajo en grupos, ejercicios guiados..." rows={4} style={{ resize: 'vertical', lineHeight: 1.6 }} />
-              </div>
-
-              <div className="campo">
-                <label className="lbl">🔴 Cierre * <span style={{ color: '#9CA3AF', fontWeight: 400 }}>(¿cómo cerrarás la clase?)</span></label>
-                <textarea className="inp" value={datos.cierre} onChange={e => set('cierre', e.target.value)} placeholder="Ej: Plenaria, reflexión, tarea, ticket de salida..." rows={3} style={{ resize: 'vertical', lineHeight: 1.6 }} />
-              </div>
-            </div>
-          )}
-
-          {/* PASO 3 */}
-          {paso === 3 && (
-            <div>
-              <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#111827', marginBottom: 4 }}>📝 Evaluación y recursos</h2>
-              <p style={{ fontSize: '0.82rem', color: '#6B7280', marginBottom: 22 }}>Define cómo evaluarás y con qué recursos cuentas.</p>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div className="campo">
-                  <label className="lbl">Metodología *</label>
-                  <select className="inp inp-sel" value={datos.metodologia} onChange={e => set('metodologia', e.target.value)}>
-                    <option value="">Selecciona</option>
-                    {metodologias.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                </div>
-                <div className="campo">
-                  <label className="lbl">Tipo de evaluación *</label>
-                  <select className="inp inp-sel" value={datos.tipoEvaluacion} onChange={e => set('tipoEvaluacion', e.target.value)}>
-                    <option value="">Selecciona</option>
-                    {evaluaciones.map(e => <option key={e} value={e}>{e}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="campo">
-                <label className="lbl">Recursos disponibles <span style={{ color: '#9CA3AF', fontWeight: 400 }}>(opcional)</span></label>
-                <div style={{ marginTop: 6 }}>
-                  {recursosOpts.map(r => (
-                    <span key={r} className={\`chip \${datos.recursos.includes(r) ? 'on' : ''}\`} onClick={() => toggleRecurso(r)}>{r}</span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="campo">
-                <label className="lbl">Observaciones adicionales <span style={{ color: '#9CA3AF', fontWeight: 400 }}>(opcional)</span></label>
-                <textarea className="inp" value={datos.observaciones} onChange={e => set('observaciones', e.target.value)} placeholder="Estudiantes con necesidades especiales, contexto del grupo, notas importantes..." rows={3} style={{ resize: 'vertical', lineHeight: 1.6 }} />
-              </div>
-
-              {/* Resumen */}
-              <div style={{ background: 'linear-gradient(135deg, rgba(0,163,255,0.05), rgba(142,45,226,0.05))', border: '1px solid rgba(0,163,255,0.15)', borderRadius: 10, padding: '16px 20px' }}>
-                <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#00A3FF', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>📋 Resumen de tu planificación</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                  {[
-                    ['Fecha', datos.fecha],
-                    ['Materia', datos.materia],
-                    ['Grado', datos.grado],
-                    ['Tema', datos.tema],
-                    ['Duración', datos.duracion],
-                    ['Metodología', datos.metodologia],
-                  ].map(([k, v]) => v ? (
-                    <div key={k}>
-                      <span style={{ fontSize: '0.7rem', color: '#9CA3AF', fontWeight: 500 }}>{k}: </span>
-                      <span style={{ fontSize: '0.78rem', color: '#111827', fontWeight: 600 }}>{v}</span>
-                    </div>
-                  ) : null)}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {errores.length > 0 && (
-            <div className="err-box">
-              <span>⚠️</span>
-              <div>{errores.map(e => <p key={e}>{e}</p>)}</div>
-            </div>
-          )}
+      {/* Recursos */}
+      {plan.recursos_necesarios?.length > 0 && (
+        <div style={{ background: 'white', border: '1px solid #e8edf5', borderRadius: 12, padding: '18px 20px', marginBottom: 12 }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6B7280', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>📦 Recursos necesarios</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {plan.recursos_necesarios.map((r, i) => (
+              <span key={i} style={{ fontSize: '0.82rem', padding: '6px 14px', borderRadius: 8, background: '#f3f4f6', color: '#374151', fontWeight: 500 }}>📌 {r}</span>
+            ))}
+          </div>
         </div>
+      )}
 
-        {/* Navegación */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            {paso > 1 && <button className="btn-sec" onClick={anterior}>← Anterior</button>}
+      {/* Criterios */}
+      {plan.criterios_evaluacion?.length > 0 && (
+        <div style={{ background: 'white', border: '1px solid #e8edf5', borderRadius: 12, padding: '18px 20px', marginBottom: 12 }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6B7280', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>📊 Criterios de evaluación</p>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.83rem' }}>
+              <thead>
+                <tr style={{ background: '#f9fafb' }}>
+                  {['Criterio','Indicador','%'].map(h => (
+                    <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e8edf5' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {plan.criterios_evaluacion.map((c, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '10px 12px', color: '#111827', fontWeight: 500 }}>{c.criterio}</td>
+                    <td style={{ padding: '10px 12px', color: '#4B5563' }}>{c.indicador}</td>
+                    <td style={{ padding: '10px 12px', color: '#00A3FF', fontWeight: 700 }}>{c.porcentaje}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <Link href="/dashboard/planeacion" style={{ fontSize: '0.82rem', color: '#9CA3AF', textDecoration: 'none', fontWeight: 500 }}>Cancelar</Link>
-            {paso < 3 ? (
-              <button className="btn-main" onClick={siguiente}>Siguiente →</button>
-            ) : (
-              <button className="btn-main" onClick={generar} disabled={loading} style={{ padding: '12px 32px' }}>
-                {loading ? (
-                  <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} /> Generando…</>
-                ) : <>⚡ Generar planificación con IA</>}
-              </button>
-            )}
-          </div>
+        </div>
+      )}
+
+      {/* Tarea */}
+      {plan.tarea_para_casa && (
+        <div style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 12, padding: '16px 20px', marginBottom: 12 }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#d97706', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>🏠 Tarea para casa</p>
+          <p style={{ fontSize: '0.88rem', color: '#374151', lineHeight: 1.7 }}>{plan.tarea_para_casa}</p>
+        </div>
+      )}
+
+      {/* Notas */}
+      {plan.notas_docente && (
+        <div style={{ background: '#f9fafb', border: '1px solid #e8edf5', borderRadius: 12, padding: '16px 20px', marginBottom: 12 }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6B7280', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>💡 Notas para el docente</p>
+          <p style={{ fontSize: '0.88rem', color: '#374151', lineHeight: 1.7 }}>{plan.notas_docente}</p>
+        </div>
+      )}
+
+      {/* Barra de acciones fija */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e8edf5', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 100, boxShadow: '0 -4px 20px rgba(0,0,0,0.08)' }}>
+        <button onClick={onRegenerar} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'white', color: '#374151', fontWeight: 600, fontSize: '0.85rem', border: '1.5px solid #d1d5db', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' }}>
+          🔄 Regenerar
+        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={onExportar} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', background: 'white', color: '#374151', fontWeight: 600, fontSize: '0.85rem', border: '1.5px solid #d1d5db', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit' }}>
+            📄 Exportar PDF
+          </button>
+          <button onClick={onGuardar} disabled={guardando} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 24px', background: 'linear-gradient(135deg,#00A3FF,#8E2DE2)', color: 'white', fontWeight: 700, fontSize: '0.85rem', border: 'none', borderRadius: 9, cursor: guardando ? 'not-allowed' : 'pointer', opacity: guardando ? 0.7 : 1, fontFamily: 'inherit' }}>
+            {guardando ? '⏳ Guardando...' : '💾 Guardar planificación'}
+          </button>
         </div>
       </div>
     </div>
   )
-}`
+}
+`
 
-fs.writeFileSync('./app/dashboard/planeacion/diaria/page.tsx', content, 'utf8')
-console.log('✅ Planificación Diaria creada!')
+// ── ARCHIVO 3: skeleton ──
+const skeleton = `export default function PlanificacionSkeleton() {
+  return (
+    <div style={{ fontFamily: "'Inter', sans-serif" }}>
+      <style>{\`
+        @keyframes shimmer {
+          0% { background-position: -1000px 0; }
+          100% { background-position: 1000px 0; }
+        }
+        .sk {
+          background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+          background-size: 1000px 100%;
+          animation: shimmer 1.5s infinite;
+          border-radius: 8px;
+        }
+      \`}</style>
+
+      {/* Header skeleton */}
+      <div style={{ background: '#f3f4f6', borderRadius: 14, padding: '24px 28px', marginBottom: 20 }}>
+        <div className="sk" style={{ height: 12, width: 180, marginBottom: 12 }} />
+        <div className="sk" style={{ height: 20, width: '70%', marginBottom: 14 }} />
+        <div style={{ display: 'flex', gap: 8 }}>
+          {[80,70,90,100].map(w => <div key={w} className="sk" style={{ height: 26, width: w }} />)}
+        </div>
+      </div>
+
+      {/* Objetivo skeleton */}
+      <div style={{ border: '1.5px solid #e8edf5', borderRadius: 12, padding: '18px 22px', marginBottom: 20 }}>
+        <div className="sk" style={{ height: 10, width: 140, marginBottom: 12 }} />
+        <div className="sk" style={{ height: 14, width: '100%', marginBottom: 8 }} />
+        <div className="sk" style={{ height: 14, width: '80%' }} />
+      </div>
+
+      {/* Actividades skeleton */}
+      {['🟢 Actividades de Inicio','🔵 Actividades de Desarrollo','🔴 Actividades de Cierre'].map((t, i) => (
+        <div key={i} style={{ border: '1.5px solid #e8edf5', borderRadius: 12, padding: '14px 18px', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="sk" style={{ height: 14, width: 200 }} />
+            <div className="sk" style={{ height: 14, width: 14 }} />
+          </div>
+        </div>
+      ))}
+
+      {/* Loader central */}
+      <div style={{ textAlign: 'center', padding: '32px 0' }}>
+        <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', border: '3px solid rgba(0,163,255,0.2)', borderTopColor: '#00A3FF', animation: 'spin 0.8s linear infinite' }} />
+          <p style={{ fontSize: '0.9rem', color: '#6B7280', fontWeight: 500 }}>Docenly IA está creando tu planificación…</p>
+          <p style={{ fontSize: '0.78rem', color: '#9CA3AF' }}>Esto puede tomar hasta 30 segundos</p>
+        </div>
+      </div>
+
+      <style>{\`@keyframes spin { to { transform: rotate(360deg); } }\`}</style>
+    </div>
+  )
+}
+`
+
+fs.writeFileSync('./app/api/generate-planificacion/route.ts', endpoint, 'utf8')
+fs.writeFileSync('./components/PlanificacionResultado.tsx', resultado, 'utf8')
+fs.writeFileSync('./components/PlanificacionSkeleton.tsx', skeleton, 'utf8')
+console.log('✅ Endpoint, Resultado y Skeleton creados!')

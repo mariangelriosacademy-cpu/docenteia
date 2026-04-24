@@ -366,7 +366,32 @@ export default function PlaneacionPage() {
           <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
             <button className="btn-secondary" onClick={() => setPaso('tipo')}>← Volver</button>
             <button className="btn-primary">
-              ⚡ Generar planificación con IA
+              ⚡ Generar planificación con IA</button>
+          <button
+            onClick={() => exportarPlanificacionPDF(
+              {
+                titulo: "Mi planificación",
+                materia: contexto.area || "Materia",
+                grado: contexto.grado || "Grado",
+                tema: "Tema de la clase",
+              },
+              "Docente"
+            )}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 20px",
+              background: "linear-gradient(135deg, #00A3FF, #8E2DE2)",
+              color: "white",
+              fontWeight: 700,
+              fontSize: "0.875rem",
+              border: "none",
+              borderRadius: 9,
+              cursor: "pointer",
+            }}
+          >
+            📄 Exportar PDF
             </button>
           </div>
         </div>
