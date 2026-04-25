@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { eliminarPrompt, actualizarEstrellas } from '@/lib/prompts/actions'
+import UsarPromptModal from '@/components/UsarPromptModal'
 
 const CATEGORIAS = ['Todas', 'Planificación', 'Evaluación', 'Actividades', 'Comunicación', 'Creatividad', 'Adaptaciones', 'Otro']
 
@@ -56,6 +57,8 @@ export default function PromptsPage() {
   const [minEstrellas, setMinEstrellas] = useState(0)
   const [modalEliminar, setModalEliminar] = useState<string | null>(null)
   const [copiado, setCopiado]         = useState<string | null>(null)
+  const [modalOpen, setModalOpen]       = useState(false)
+const [promptActivo, setPromptActivo] = useState<Prompt | null>(null)
 
   const supabase = createClient()
 
@@ -92,6 +95,10 @@ export default function PromptsPage() {
     setPrompts(prompts.map(p => p.id === id ? { ...p, estrellas: valor } : p))
   }
 
+  const handleUsarPrompt = (prompt: Prompt) => {
+  setPromptActivo(prompt)
+  setModalOpen(true)
+}
   async function handleCopiar(texto: string, id: string) {
     await navigator.clipboard.writeText(texto)
     setCopiado(id)
@@ -241,7 +248,13 @@ export default function PromptsPage() {
                   style={{ background: copiado === prompt.id ? '#d1fae5' : '#eef2ff', color: copiado === prompt.id ? '#059669' : '#4338ca' }}
                 >
                   {copiado === prompt.id ? '✅ Copiado' : '📋 Copiar'}
-                </button>
+                </button><button
+  className="btn-icon"
+  onClick={() => handleUsarPrompt(prompt)}
+  style={{ background: 'linear-gradient(135deg,#00A3FF,#8E2DE2)', color: 'white' }}
+>
+  ✨ Usar
+</button>
                 <Link href={`/dashboard/prompts/${prompt.id}/editar`} style={{
                   padding: '6px 10px', background: '#fef3c7', color: '#92400e',
                   borderRadius: 7, fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none',
@@ -287,7 +300,11 @@ export default function PromptsPage() {
             </div>
           </div>
         </div>
-      )}
+      )}<UsarPromptModal
+  isOpen={modalOpen}
+  onClose={() => setModalOpen(false)}
+  prompt={promptActivo}
+/>
     </div>
   )
 }

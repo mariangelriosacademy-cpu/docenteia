@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { crearPrompt } from '@/lib/prompts/actions'
 import Link from 'next/link'
+import UsarPromptModal from '@/components/UsarPromptModal'
 
 const CATEGORIAS = [
   'Planificación', 'Evaluación', 'Actividades',
@@ -16,6 +17,9 @@ export default function NuevoPromptPage() {
   const [esPublico, setEsPublico] = useState(false)
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
+  const [modalOpen, setModalOpen] = useState(false)
+const [promptActivo, setPromptActivo] = useState<any>(null)
+
 
   const agregarEtiqueta = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ',') {
@@ -29,8 +33,14 @@ export default function NuevoPromptPage() {
   }
 
   const eliminarEtiqueta = (tag: string) => {
-    setEtiquetas(etiquetas.filter(e => e !== tag))
-  }
+  setEtiquetas(etiquetas.filter(e => e !== tag))
+}
+
+
+const handleUsarPrompt = (prompt: any) => {
+  setPromptActivo(prompt)
+  setModalOpen(true)
+}
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
