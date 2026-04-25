@@ -13,32 +13,32 @@ const navGroups = [
   {
     grupo: 'Gestión',
     items: [
-      { label: 'Oficina', href: '/dashboard/oficina', icono: '◈',
+      { label: 'Oficina', href: '/dashboard/oficina', icono: '◉',
         subs: [{ label: 'Correos', href: '/dashboard/oficina/correos' }, { label: 'Comunicados', href: '/dashboard/oficina/comunicados' }, { label: 'Plantillas', href: '/dashboard/oficina/plantillas' }, { label: 'Asistencias', href: '/dashboard/oficina/asistencias' }, { label: 'Calificaciones', href: '/dashboard/oficina/calificaciones' }] },
-      { label: 'Mis Clases', href: '/dashboard/clases', icono: '⊟',
+      { label: 'Mis Clases', href: '/dashboard/clases', icono: '◉',
         subs: [{ label: 'Asignaturas/Niveles', href: '/dashboard/clases/asignaturas' }, { label: 'Actividades', href: '/dashboard/clases/actividades' }, { label: 'Instrumentos', href: '/dashboard/clases/instrumentos' }] },
-      { label: 'Planeación', href: '/dashboard/planeacion', icono: '⊡', subs: [] },
-      { label: 'Evaluaciones', href: '/dashboard/evaluaciones', icono: '◎',
+      { label: 'Planeación', href: '/dashboard/planeacion', icono: '◉', subs: [] },
+      { label: 'Evaluaciones', href: '/dashboard/evaluaciones', icono: '◉',
         subs: [{ label: 'Seguimiento', href: '/dashboard/evaluaciones/seguimiento' }, { label: 'Corrección', href: '/dashboard/evaluaciones/correccion' }, { label: 'Automatización', href: '/dashboard/evaluaciones/automatizacion' }] },
       { label: 'Retroalimentación', href: '/dashboard/retroalimentacion', icono: '◉',
         subs: [{ label: 'Foro', href: '/dashboard/retroalimentacion/foro' }, { label: 'Comentarios', href: '/dashboard/retroalimentacion/comentarios' }] },
-        { label: 'Diagnóstico de Aula', href: '/dashboard/diagnostico', icono: '🔍', subs: [] },
+        { label: 'Diagnóstico de Aula', href: '/dashboard/diagnostico', icono: '◉', subs: [] },
     ]
   },
   {
     grupo: 'Formación',
     items: [
-      { label: 'Formación', href: '/dashboard/formacion', icono: '◈',
+      { label: 'Formación', href: '/dashboard/formacion', icono: '◉',
         subs: [{ label: 'Presencial', href: '/dashboard/formacion/presencial' }, { label: 'E-learning', href: '/dashboard/formacion/elearning' }, { label: 'En vivo', href: '/dashboard/formacion/vivo' }] },
-      { label: 'Contenidos', href: '/dashboard/contenidos', icono: '🗂️',
+      { label: 'Contenidos', href: '/dashboard/contenidos', icono: '◉',
   subs: [{ label: 'Mi repositorio', href: '/dashboard/contenidos' }, { label: 'Nuevo contenido', href: '/dashboard/contenidos/nuevo' }] },
-      { label: 'Prompts IA', href: '/dashboard/prompts', icono: '◬',
+      { label: 'Prompts IA', href: '/dashboard/prompts', icono: '◉',
   subs: [
     { label: 'Mis prompts', href: '/dashboard/prompts' },
     { label: 'Comunidad', href: '/dashboard/prompts/comunidad' },
     { label: 'Nuevo prompt', href: '/dashboard/prompts/nuevo' },
   ]},
-      { label: 'Mi Aprendizaje', href: '/dashboard/aprendizaje', icono: '◍',
+      { label: 'Mi Aprendizaje', href: '/dashboard/aprendizaje', icono: '◉',
         subs: [{ label: 'Cursos', href: '/dashboard/aprendizaje/cursos' }, { label: 'Tutoriales', href: '/dashboard/aprendizaje/tutoriales' }] },
     ]
   },
@@ -46,8 +46,8 @@ const navGroups = [
   {
     grupo: 'Mi cuenta',
     items: [
-      { label: 'Mi Perfil',     href: '/dashboard/perfil',        icono: '◯', subs: [] },
-      { label: 'Configuración', href: '/configuracion',           icono: '◎', subs: [] },
+      { label: 'Mi Perfil',     href: '/dashboard/perfil',        icono: '◉', subs: [] },
+      { label: 'Configuración', href: '/configuracion',           icono: '◉', subs: [] },
     ]
   },
 ]
