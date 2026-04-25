@@ -32,7 +32,11 @@ const navGroups = [
       { label: 'Recursos', href: '/dashboard/recursos', icono: '◧',
         subs: [{ label: 'Físicos', href: '/dashboard/recursos/fisicos' }, { label: 'Digitales', href: '/dashboard/recursos/digitales' }] },
       { label: 'Prompts IA', href: '/dashboard/prompts', icono: '◬',
-        subs: [{ label: 'Generador', href: '/dashboard/prompts/generador' }, { label: 'Mis prompts', href: '/dashboard/prompts/mis-prompts' }] },
+  subs: [
+    { label: 'Mis prompts', href: '/dashboard/prompts' },
+    { label: 'Comunidad', href: '/dashboard/prompts/comunidad' },
+    { label: 'Nuevo prompt', href: '/dashboard/prompts/nuevo' },
+  ]},
       { label: 'Mi Aprendizaje', href: '/dashboard/aprendizaje', icono: '◍',
         subs: [{ label: 'Cursos', href: '/dashboard/aprendizaje/cursos' }, { label: 'Tutoriales', href: '/dashboard/aprendizaje/tutoriales' }] },
     ]
