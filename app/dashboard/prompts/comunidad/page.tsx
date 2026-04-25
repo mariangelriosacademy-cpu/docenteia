@@ -81,7 +81,7 @@ export default function ComunidadPromptsPage() {
       if (promptsData) {
       const formateados = promptsData.map((p: any) => ({
         ...p,
-        autor: p.profiles?.nombre || 'Docente anónimo',
+        autor: (p.profiles as any)?.nombre || 'Docente anónimo',
       }))
       setPrompts(formateados)
     }

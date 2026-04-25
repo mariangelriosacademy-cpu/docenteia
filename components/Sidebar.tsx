@@ -22,6 +22,7 @@ const navGroups = [
         subs: [{ label: 'Seguimiento', href: '/dashboard/evaluaciones/seguimiento' }, { label: 'Corrección', href: '/dashboard/evaluaciones/correccion' }, { label: 'Automatización', href: '/dashboard/evaluaciones/automatizacion' }] },
       { label: 'Retroalimentación', href: '/dashboard/retroalimentacion', icono: '◉',
         subs: [{ label: 'Foro', href: '/dashboard/retroalimentacion/foro' }, { label: 'Comentarios', href: '/dashboard/retroalimentacion/comentarios' }] },
+        { label: 'Diagnóstico de Aula', href: '/dashboard/diagnostico', icono: '🔍', subs: [] },
     ]
   },
   {
@@ -29,8 +30,8 @@ const navGroups = [
     items: [
       { label: 'Formación', href: '/dashboard/formacion', icono: '◈',
         subs: [{ label: 'Presencial', href: '/dashboard/formacion/presencial' }, { label: 'E-learning', href: '/dashboard/formacion/elearning' }, { label: 'En vivo', href: '/dashboard/formacion/vivo' }] },
-      { label: 'Recursos', href: '/dashboard/recursos', icono: '◧',
-        subs: [{ label: 'Físicos', href: '/dashboard/recursos/fisicos' }, { label: 'Digitales', href: '/dashboard/recursos/digitales' }] },
+      { label: 'Contenidos', href: '/dashboard/contenidos', icono: '🗂️',
+  subs: [{ label: 'Mi repositorio', href: '/dashboard/contenidos' }, { label: 'Nuevo contenido', href: '/dashboard/contenidos/nuevo' }] },
       { label: 'Prompts IA', href: '/dashboard/prompts', icono: '◬',
   subs: [
     { label: 'Mis prompts', href: '/dashboard/prompts' },
@@ -41,12 +42,7 @@ const navGroups = [
         subs: [{ label: 'Cursos', href: '/dashboard/aprendizaje/cursos' }, { label: 'Tutoriales', href: '/dashboard/aprendizaje/tutoriales' }] },
     ]
   },
-  {
-    grupo: 'Herramientas',
-    items: [
-      { label: 'Diagnóstico de Aula', href: '/dashboard/diagnostico', icono: '🔍', subs: [] },
-    ]
-  },
+  
   {
     grupo: 'Mi cuenta',
     items: [
