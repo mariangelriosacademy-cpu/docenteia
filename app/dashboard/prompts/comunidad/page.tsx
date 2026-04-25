@@ -77,7 +77,8 @@ export default function ComunidadPromptsPage() {
       .is('prompt_original_id', null)
       .order('created_at', { ascending: false })
 
-    if (promptsData) {
+    console.log('prompts cargados:', promptsData?.length, promptsData)
+      if (promptsData) {
       const formateados = promptsData.map((p: any) => ({
         ...p,
         autor: p.profiles?.nombre || 'Docente anónimo',
