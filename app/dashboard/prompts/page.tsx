@@ -80,7 +80,7 @@ const [promptActivo, setPromptActivo] = useState<Prompt | null>(null)
     const matchBusqueda  = p.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
                            p.descripcion?.toLowerCase().includes(busqueda.toLowerCase())
     const matchCategoria = categoria === 'Todas' || p.categoria === categoria
-    const matchEstrellas = p.estrellas >= minEstrellas
+    const matchEstrellas = (p.estrellas || 0) >= minEstrellas
     return matchBusqueda && matchCategoria && matchEstrellas
   })
 
