@@ -20,10 +20,10 @@ const sugerenciasIA = [
 ]
 
 const accionesRapidas = [
-  { label: 'Nueva lección',    href: '/dashboard/clases/nueva',       desc: 'Crea y estructura tu clase' },
-  { label: 'Nueva evaluación', href: '/dashboard/evaluaciones/nueva', desc: 'Pruebas y rúbricas con IA' },
-  { label: 'Nueva actividad',  href: '/dashboard/planeacion/nueva',   desc: 'Planifica paso a paso' },
-  { label: 'Añadir recurso',   href: '/dashboard/recursos/nuevo',     desc: 'Materiales digitales' },
+  { label: 'Nueva lección',    href: '/dashboard/clases/nueva',       desc: 'Crea y estructura tu clase',  color: '#1A2B56' },
+  { label: 'Nueva evaluación', href: '/dashboard/evaluaciones/nueva', desc: 'Pruebas y rúbricas con IA',   color: '#8E2DE2' },
+  { label: 'Nueva actividad',  href: '/dashboard/planeacion/nueva',   desc: 'Planifica paso a paso',        color: '#00A3FF' },
+  { label: 'Añadir recurso',   href: '/dashboard/recursos/nuevo',     desc: 'Materiales digitales',         color: '#00868a' },
 ]
 
 export default async function DashboardPage() {
@@ -80,22 +80,37 @@ export default async function DashboardPage() {
         .stat-card.alerta { border-left: 3px solid #F59E0B; }
 
         .accion-btn {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          padding: 16px 18px;
-          background: white;
-          border: 1px solid #E5E7EB;
-          border-radius: 8px;
-          text-decoration: none;
-          transition: all 0.15s;
-          cursor: pointer;
-        }
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  border: none;
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  top: 0;
+
+  /* Sombra 3D hacia abajo */
+  box-shadow:
+    0 6px 0 rgba(0,0,0,0.25),
+    0 8px 16px rgba(0,0,0,0.15);
+
+  transition: all 0.1s ease;
+}
         .accion-btn:hover {
-          border-color: #00A3FF;
-          box-shadow: 0 2px 12px rgba(0,163,255,0.08);
-          transform: translateY(-1px);
-        }
+  top: 3px;
+  box-shadow:
+    0 3px 0 rgba(0,0,0,0.25),
+    0 4px 8px rgba(0,0,0,0.15);
+}
+
+.accion-btn:active {
+  top: 6px;
+  box-shadow:
+    0 0px 0 rgba(0,0,0,0.25),
+    0 2px 4px rgba(0,0,0,0.1);
+}
 
         .ia-block {
           background: white;
@@ -239,9 +254,9 @@ export default async function DashboardPage() {
           <span className="label-tag">Acciones rápidas</span>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
             {accionesRapidas.map(a => (
-              <Link key={a.href} href={a.href} className="accion-btn">
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#111827' }}>+ {a.label.replace('Nueva ', '').replace('Añadir ', '')}</span>
-                <span style={{ fontSize: '0.72rem', color: '#9CA3AF', fontWeight: 400 }}>{a.desc}</span>
+              <Link key={a.href} href={a.href} className="accion-btn" style={{ background: a.color }}>
+  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'white' }}>+ {a.label.replace('Nueva ', '').replace('Añadir ', '')}</span>
+  <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', fontWeight: 400 }}>{a.desc}</span>
               </Link>
             ))}
           </div>

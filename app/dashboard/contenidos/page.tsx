@@ -116,7 +116,7 @@ export default function ContenidosPage() {
         .card-contenido { background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.2s; overflow: hidden; position: relative; }
         .card-contenido:hover { box-shadow: 0 8px 24px rgba(0,163,255,0.1); transform: translateY(-2px); }
         .card-seleccionada { border-color: #00A3FF; box-shadow: 0 0 0 2px rgba(0,163,255,0.2); }
-        .btn-accion { padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+        .btn-accion { padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
         .chip-tipo { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 600; }
         .seccion-agrupada { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 14px; }
         .seccion-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; background: #F8F9FA; border-bottom: 1px solid #e2e8f0; transition: background 0.15s; }
@@ -316,10 +316,10 @@ export default function ContenidosPage() {
 
                 {/* Acciones */}
                 <div style={{ display: 'flex', gap: 6, borderTop: '1px solid #f1f5f9', paddingTop: 10 }}>
-                  <Link href={`/dashboard/contenidos/${c.id}`} className="btn-accion" style={{ flex: 1, textAlign: 'center', background: '#EFF6FF', color: '#00A3FF', textDecoration: 'none', display: 'block', padding: '6px 0' }}>
+                  <Link href={`/dashboard/contenidos/${c.id}`} className="btn-accion" style={{ flex: 1, textAlign: 'center', background: '#00A3FF', color: 'white', textDecoration: 'none', display: 'block', padding: '6px 0' }}>
                     Ver
                   </Link>
-                  <button onClick={() => duplicarContenido(c)} className="btn-accion" style={{ background: '#F3F4F6', color: '#6B7280' }}>
+                  <button onClick={() => duplicarContenido(c)} className="btn-accion" style={{ background: '#1A2B56', color: 'white' }}>
                     Duplicar
                   </button>
                   <button
@@ -361,8 +361,8 @@ export default function ContenidosPage() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                <Link href={`/dashboard/contenidos/${c.id}`} className="btn-accion" style={{ background: '#EFF6FF', color: '#00A3FF', textDecoration: 'none' }}>Ver</Link>
-                <button onClick={() => duplicarContenido(c)} className="btn-accion" style={{ background: '#F3F4F6', color: '#6B7280' }}>Duplicar</button>
+                <Link href={`/dashboard/contenidos/${c.id}`} className="btn-accion" style={{ background: '#00A3FF', color: 'white', textDecoration: 'none' }}>Ver</Link>
+                <button onClick={() => duplicarContenido(c)} className="btn-accion" style={{ background: '#1A2B56', color: 'white' }}>Duplicar</button>
                 <button onClick={async () => { if (!confirm('¿Eliminar?')) return; await supabase.from('contenidos').delete().eq('id', c.id); await cargarContenidos() }} className="btn-accion" style={{ background: '#FFF1F2', color: '#BE123C' }}>🗑️</button>
               </div>
             </div>

@@ -90,12 +90,21 @@ export default function EditarContenidoPage() {
   }
 
   const validarYSetArchivo = (file: File) => {
-    const tiposPermitidos = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png']
-    if (!tiposPermitidos.includes(file.type)) { setError('Tipo no permitido. Solo PDF, DOC, DOCX, JPG, PNG.'); return }
-    if (file.size > 10 * 1024 * 1024) { setError('El archivo no puede superar 10MB.'); return }
-    setError('')
-    setNuevoArchivo(file)
+  const tiposPermitidos = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png']
+  const extensionesPermitidas = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png']
+  const extension = '.' + file.name.split('.').pop()?.toLowerCase()
+  if (!tiposPermitidos.includes(file.type) && !extensionesPermitidas.includes(extension)) {
+    setError('Tipo no permitido. Solo PDF, DOC, DOCX, JPG, PNG.')
+    return
   }
+  if (file.size > 10 * 1024 * 1024) {
+    setError(`El archivo pesa ${(file.size / 1024 / 1024).toFixed(2)}MB. Máximo 10MB.`)
+    return
+  }
+  if (file.size === 0) { setError('El archivo está vacío.'); return }
+  setError('')
+  setNuevoArchivo(file)
+}
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

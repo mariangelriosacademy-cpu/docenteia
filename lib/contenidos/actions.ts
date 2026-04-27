@@ -114,3 +114,36 @@ export async function eliminarContenido(id: string) {
   revalidatePath('/dashboard/contenidos')
   return { success: true }
 }
+export async function duplicarContenido(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autenticado' }
+
+  const { data: original } = await supabase
+    .from('contenidos')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!original) return { error: 'No encontrado' }
+
+  const { error } = await supabase.from('contenidos').insert({
+    user_id:       user.id,
+    titulo:        `Copia de ${original.titulo}`,
+    tipo:          original.tipo,
+    materia:       original.materia,
+    nivel:         original.nivel,
+    descripcion:   original.descripcion,
+    etiquetas:     original.etiquetas,
+    notas:         original.notas,
+    url_externa:   original.url_externa,
+    archivo_url:   original.archivo_url,
+    archivo_nombre: original.archivo_nombre,
+    archivo_tipo:  original.archivo_tipo,
+  })
+
+  if (error) return { error: error.message }
+  revalidatePath('/dashboard/contenidos')
+  return { success: true }
+}
