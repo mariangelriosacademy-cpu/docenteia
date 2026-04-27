@@ -17,6 +17,7 @@ const navGroups = [
         subs: [{ label: 'Correos', href: '/dashboard/oficina/correos' }, { label: 'Comunicados', href: '/dashboard/oficina/comunicados' }, { label: 'Plantillas', href: '/dashboard/oficina/plantillas' }, { label: 'Asistencias', href: '/dashboard/oficina/asistencias' }, { label: 'Calificaciones', href: '/dashboard/oficina/calificaciones' }, { label: 'Estudiantes', href: '/dashboard/oficina/estudiantes' }] },
       { label: 'Mis Clases', href: '/dashboard/clases', icono: '◉',
         subs: [{ label: 'Asignaturas/Niveles', href: '/dashboard/clases/asignaturas' }, { label: 'Actividades', href: '/dashboard/clases/actividades' }, { label: 'Instrumentos', href: '/dashboard/clases/instrumentos' }] },
+        { label: 'Estudiantes', href: '/dashboard/estudiantes', icono: '·', subs: [] },
       { label: 'Planeación', href: '/dashboard/planeacion', icono: '◉', subs: [] },
       { label: 'Evaluaciones', href: '/dashboard/evaluaciones', icono: '◉',
         subs: [{ label: 'Seguimiento', href: '/dashboard/evaluaciones/seguimiento' }, { label: 'Corrección', href: '/dashboard/evaluaciones/correccion' }, { label: 'Automatización', href: '/dashboard/evaluaciones/automatizacion' }] },

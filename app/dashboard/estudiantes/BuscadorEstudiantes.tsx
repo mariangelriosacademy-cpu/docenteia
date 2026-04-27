@@ -1,55 +1,4 @@
-const fs = require('fs')
-
-// Fix page.tsx — quitar funciones como props
-const page = `import Link from 'next/link'
-import { obtener_todos } from '@/lib/estudiantes/actions'
-import BuscadorEstudiantes from './BuscadorEstudiantes'
-
-export default async function EstudiantesPage() {
-  const estudiantes = await obtener_todos()
-  const activos   = estudiantes.filter(e => e.activo).length
-  const inactivos = estudiantes.filter(e => !e.activo).length
-
-  return (
-    <div style={{ fontFamily: "'Inter', sans-serif" }}>
-      <style>{\`* { box-sizing: border-box; }\`}</style>
-
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <div>
-          <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1A2B56', letterSpacing: '-0.03em', marginBottom: 4 }}>Estudiantes</h1>
-          <p style={{ fontSize: '0.82rem', color: '#6B7280' }}>{estudiantes.length} total · {activos} activos · {inactivos} archivados</p>
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <label htmlFor="csv-upload" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: 'white', color: '#1A2B56', border: '1.5px solid #e2e8f0', fontWeight: 600, fontSize: '0.82rem', borderRadius: 9, cursor: 'pointer' }}>
-            📥 Importar CSV
-          </label>
-          <input id="csv-upload" type="file" accept=".csv" style={{ display: 'none' }} />
-          <Link href="/dashboard/estudiantes/nuevo" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', background: 'linear-gradient(135deg,#00A3FF,#8E2DE2)', color: 'white', fontWeight: 700, fontSize: '0.85rem', borderRadius: 9, textDecoration: 'none' }}>
-            + Nuevo estudiante
-          </Link>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
-        {[
-          { label: 'Total',      valor: estudiantes.length, color: '#1A2B56', bg: '#EFF6FF' },
-          { label: 'Activos',    valor: activos,            color: '#16a34a', bg: '#dcfce7' },
-          { label: 'Archivados', valor: inactivos,          color: '#6B7280', bg: '#F3F4F6' },
-        ].map(s => (
-          <div key={s.label} style={{ background: s.bg, borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: s.color }}>{s.label}</span>
-            <span style={{ fontSize: '1.6rem', fontWeight: 800, color: s.color, letterSpacing: '-0.04em' }}>{s.valor}</span>
-          </div>
-        ))}
-      </div>
-
-      <BuscadorEstudiantes estudiantes={estudiantes} />
-    </div>
-  )
-}`
-
-// Fix BuscadorEstudiantes.tsx — incluir funciones internamente
-const buscador = `'use client'
+'use client'
 import { useState } from 'react'
 import Link from 'next/link'
 import { archivar } from '@/lib/estudiantes/actions'
@@ -97,14 +46,14 @@ export default function BuscadorEstudiantes({ estudiantes }: { estudiantes: Estu
 
   return (
     <div>
-      <style>{\`
+      <style>{`
         .est-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: white; border-radius: 10px; border: 1px solid #e2e8f0; transition: all 0.18s; margin-bottom: 6px; }
         .est-row:hover { box-shadow: 0 4px 16px rgba(0,163,255,0.08); border-color: rgba(0,163,255,0.2); }
         .badge-activo   { padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; background: #dcfce7; color: #16a34a; }
         .badge-inactivo { padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; background: #F3F4F6; color: #6B7280; }
         .btn-filtro { padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; border: 1px solid #e2e8f0; cursor: pointer; font-family: inherit; transition: all 0.15s; background: white; color: #6B7280; }
         .btn-filtro.on { background: #1A2B56; color: white; border-color: #1A2B56; }
-      \`}</style>
+      `}</style>
 
       {/* Barra búsqueda + filtros */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -117,7 +66,7 @@ export default function BuscadorEstudiantes({ estudiantes }: { estudiantes: Estu
         />
         <div style={{ display: 'flex', gap: 6 }}>
           {(['todos','activos','archivados'] as const).map(f => (
-            <button key={f} className={\`btn-filtro \${filtro === f ? 'on' : ''}\`} onClick={() => setFiltro(f)}>
+            <button key={f} className={`btn-filtro ${filtro === f ? 'on' : ''}`} onClick={() => setFiltro(f)}>
               {f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
           ))}
@@ -152,10 +101,10 @@ export default function BuscadorEstudiantes({ estudiantes }: { estudiantes: Estu
 
               {/* Acciones */}
               <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                <Link href={\`/dashboard/estudiantes/\${e.id}\`} style={{ padding: '5px 12px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, background: '#F3F4F6', color: '#374151', textDecoration: 'none' }}>
+                <Link href={`/dashboard/estudiantes/${e.id}`} style={{ padding: '5px 12px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, background: '#F3F4F6', color: '#374151', textDecoration: 'none' }}>
                   Ver
                 </Link>
-                <Link href={\`/dashboard/estudiantes/\${e.id}/editar\`} style={{ padding: '5px 12px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, background: '#EFF6FF', color: '#00A3FF', textDecoration: 'none' }}>
+                <Link href={`/dashboard/estudiantes/${e.id}/editar`} style={{ padding: '5px 12px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600, background: '#EFF6FF', color: '#00A3FF', textDecoration: 'none' }}>
                   Editar
                 </Link>
                 <button
@@ -172,8 +121,4 @@ export default function BuscadorEstudiantes({ estudiantes }: { estudiantes: Estu
       )}
     </div>
   )
-}`
-
-fs.writeFileSync('./app/dashboard/estudiantes/page.tsx', page, 'utf8')
-fs.writeFileSync('./app/dashboard/estudiantes/BuscadorEstudiantes.tsx', buscador, 'utf8')
-console.log('✅ Estudiantes corregido!')
+}

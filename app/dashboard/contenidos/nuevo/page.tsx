@@ -63,35 +63,19 @@ export default function NuevoContenidoPage() {
   }
 
   const validarYSetArchivo = (file: File) => {
-  const TIPOS_PERMITIDOS = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'image/jpeg',
-    'image/png',
-  ]
-  const EXTENSIONES_PERMITIDAS = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png']
-  const extension = '.' + file.name.split('.').pop()?.toLowerCase()
-
-  if (!TIPOS_PERMITIDOS.includes(file.type) && !EXTENSIONES_PERMITIDAS.includes(extension)) {
-    setError('Tipo no permitido. Solo PDF, DOC, DOCX, JPG, PNG.')
-    return
-  }
-  if (file.size > 10 * 1024 * 1024) {
-    setError(`El archivo pesa ${(file.size / 1024 / 1024).toFixed(2)}MB. Máximo 10MB.`)
-    return
-  }
-  if (file.size === 0) {
-    setError('El archivo está vacío.')
-    return
-  }
+  const tiposPermitidos = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png']
+  if (!tiposPermitidos.includes(file.type)) { setError('Tipo de archivo no permitido.'); return }
+  if (file.size > 10 * 1024 * 1024) { setError('El archivo no puede superar 10MB.'); return }
   setError('')
-  if (file.type.startsWith('image/')) {
-  setPreviewUrl(URL.createObjectURL(file))
-} else {
-  setPreviewUrl(null)
-}
   setArchivo(file)
+
+  // Preview solo para imágenes
+  if (file.type.startsWith('image/')) {
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+  } else {
+    setPreviewUrl(null)
+  }
 }
 
   async function generarConIA() {
@@ -443,10 +427,14 @@ export default function NuevoContenidoPage() {
                   onChange={e => { const f = e.target.files?.[0]; if (f) validarYSetArchivo(f) }}
                 />
                 {archivo ? (
-                  <div>
-                    <div style={{ fontSize: '2rem', marginBottom: 8 }}>✅</div>
-                    <p style={{ fontWeight: 700, color: '#1A2B56', fontSize: '0.9rem' }}>{archivo.name}</p>
-                    <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: 4 }}>{(archivo.size / 1024 / 1024).toFixed(2)} MB</p>
+  <div>
+    {previewUrl ? (
+      <img src={previewUrl} alt="Preview" style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 8, marginBottom: 10 }} />
+    ) : (
+      <div style={{ fontSize: '2rem', marginBottom: 8 }}>✅</div>
+    )}
+    <p style={{ fontWeight: 700, color: '#1A2B56', fontSize: '0.9rem' }}>{archivo.name}</p>
+    <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: 4 }}>{(archivo.size / 1024 / 1024).toFixed(2)} MB</p>
                     <button type="button" onClick={e => { e.stopPropagation(); setArchivo(null) }}
                       style={{ marginTop: 8, fontSize: '0.75rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
                       ✕ Quitar archivo
