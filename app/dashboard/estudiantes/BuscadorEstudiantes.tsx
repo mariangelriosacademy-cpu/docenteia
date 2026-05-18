@@ -23,19 +23,21 @@ interface Estudiante {
   acudiente_email?: string
   acudiente_telefono?: string
   observaciones?: string
+  asignatura?: string
 }
 
 export default function BuscadorEstudiantes({ estudiantes }: { estudiantes: Estudiante[] }) {
-  const [busqueda, setBusqueda]   = useState('')
-  const [filtro, setFiltro]       = useState<'todos' | 'activos' | 'archivados'>('activos')
-  const [archivando, setArchivando] = useState<string | null>(null)
+  const [busqueda, setBusqueda]               = useState('')
+  const [filtro, setFiltro]                   = useState<'todos' | 'activos' | 'archivados'>('activos')
+  const [asignaturaFiltro, setAsignaturaFiltro] = useState<string>('todas')
+  const [archivando, setArchivando]           = useState<string | null>(null)
 
   const filtrados = estudiantes.filter(e => {
     const coincide = e.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
                      e.grado.toLowerCase().includes(busqueda.toLowerCase())
-    if (filtro === 'activos')    return coincide && e.activo
-    if (filtro === 'archivados') return coincide && !e.activo
-    return coincide
+    const matchFiltro = filtro === 'activos' ? e.activo : filtro === 'archivados' ? !e.activo : true
+    const matchAsignatura = asignaturaFiltro === 'todas' || e.asignatura === asignaturaFiltro
+    return coincide && matchFiltro && matchAsignatura
   })
 
   async function handleArchivar(id: string) {
@@ -44,6 +46,8 @@ export default function BuscadorEstudiantes({ estudiantes }: { estudiantes: Estu
     setArchivando(null)
   }
 
+  const asignaturas = [...new Set(estudiantes.filter(e => e.asignatura).map(e => e.asignatura!))]
+
   return (
     <div>
       <style>{`
@@ -51,26 +55,53 @@ export default function BuscadorEstudiantes({ estudiantes }: { estudiantes: Estu
         .est-row:hover { box-shadow: 0 4px 16px rgba(0,163,255,0.08); border-color: rgba(0,163,255,0.2); }
         .badge-activo   { padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; background: #dcfce7; color: #16a34a; }
         .badge-inactivo { padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; background: #F3F4F6; color: #6B7280; }
-        .btn-filtro { padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; border: 1px solid #e2e8f0; cursor: pointer; font-family: inherit; transition: all 0.15s; background: white; color: #6B7280; }
-        .btn-filtro.on { background: #1A2B56; color: white; border-color: #1A2B56; }
+        .filtro-btn { padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.82rem; transition: all 0.15s; }
       `}</style>
 
-      {/* Barra búsqueda + filtros */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+      {/* Buscador */}
+      <div style={{ marginBottom: 16 }}>
         <input
           type="text"
           placeholder="Buscar por nombre o grado..."
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
-          style={{ flex: 1, minWidth: 200, padding: '9px 14px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: '0.875rem', fontFamily: 'inherit', outline: 'none', color: '#111827' }}
+          style={{ width: '100%', padding: '9px 14px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: '0.875rem', fontFamily: 'inherit', outline: 'none', color: '#111827' }}
         />
-        <div style={{ display: 'flex', gap: 6 }}>
-          {(['todos','activos','archivados'] as const).map(f => (
-            <button key={f} className={`btn-filtro ${filtro === f ? 'on' : ''}`} onClick={() => setFiltro(f)}>
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
+      </div>
+
+      {/* Filtros */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+
+        {/* Total */}
+        <div className="filtro-btn"
+          onClick={() => { setFiltro('todos'); setAsignaturaFiltro('todas') }}
+          style={{ background: filtro === 'todos' && asignaturaFiltro === 'todas' ? '#1A2B56' : '#EFF6FF', color: filtro === 'todos' && asignaturaFiltro === 'todas' ? 'white' : '#1A2B56' }}>
+          Total ({estudiantes.length})
         </div>
+
+        {/* Activos */}
+        <div className="filtro-btn"
+          onClick={() => { setFiltro('activos'); setAsignaturaFiltro('todas') }}
+          style={{ background: filtro === 'activos' && asignaturaFiltro === 'todas' ? '#16a34a' : '#dcfce7', color: filtro === 'activos' && asignaturaFiltro === 'todas' ? 'white' : '#16a34a' }}>
+          Activos ({estudiantes.filter(e => e.activo).length})
+        </div>
+
+        {/* Asignaturas */}
+        {asignaturas.map(a => (
+          <div key={a} className="filtro-btn"
+            onClick={() => { setFiltro('todos'); setAsignaturaFiltro(a) }}
+            style={{ background: asignaturaFiltro === a ? '#00A3FF' : '#e0f2fe', color: asignaturaFiltro === a ? 'white' : '#0369a1' }}>
+            {a} ({estudiantes.filter(e => e.asignatura === a).length})
+          </div>
+        ))}
+
+        {/* Archivados */}
+        <div className="filtro-btn"
+          onClick={() => { setFiltro('archivados'); setAsignaturaFiltro('todas') }}
+          style={{ background: filtro === 'archivados' ? '#6B7280' : '#F3F4F6', color: filtro === 'archivados' ? 'white' : '#6B7280' }}>
+          Archivados ({estudiantes.filter(e => !e.activo).length})
+        </div>
+
       </div>
 
       {/* Lista */}
@@ -91,7 +122,7 @@ export default function BuscadorEstudiantes({ estudiantes }: { estudiantes: Estu
               {/* Info */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontWeight: 600, color: '#111827', fontSize: '0.9rem', marginBottom: 2 }}>{e.nombre}</p>
-                <p style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{e.grado}</p>
+                <p style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{e.grado}{e.asignatura ? ` · ${e.asignatura}` : ''}</p>
               </div>
 
               {/* Estado */}

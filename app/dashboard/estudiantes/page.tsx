@@ -27,19 +27,6 @@ export default async function EstudiantesPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
-        {[
-          { label: 'Total',      valor: estudiantes.length, color: '#1A2B56', bg: '#EFF6FF' },
-          { label: 'Activos',    valor: activos,            color: '#16a34a', bg: '#dcfce7' },
-          { label: 'Archivados', valor: inactivos,          color: '#6B7280', bg: '#F3F4F6' },
-        ].map(s => (
-          <div key={s.label} style={{ background: s.bg, borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: s.color }}>{s.label}</span>
-            <span style={{ fontSize: '1.6rem', fontWeight: 800, color: s.color, letterSpacing: '-0.04em' }}>{s.valor}</span>
-          </div>
-        ))}
-      </div>
-
       <BuscadorEstudiantes estudiantes={estudiantes} />
     </div>
   )
